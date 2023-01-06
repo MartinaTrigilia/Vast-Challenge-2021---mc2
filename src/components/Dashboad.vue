@@ -11,7 +11,7 @@
         </b-col>
       </b-row>
 
-      <!-- Select Aggregation Level-->
+      <!-- Select an Aggregation Level-->
       <b-row id="charts_row2" justify="left" >
         <b-col class="b-col" md="4">
           <b-form-select v-model="aggrTrans" size="sm" class="mb-3"  @change="onClickTrans">
@@ -22,13 +22,23 @@
       </b-row>
 
       <!-- Stack BarChart and HeatMap-->
-      <b-row id="charts_row2" align-v="stretch" class="b-row mt-5">
+
+      <b-row id="BarHeat" align-v="stretch" class="b-row mt-5">
+
         <b-col class="b-col" md="6">
           <b-card-text><StackBarchart :aggregationType="aggrBarChartMap"></StackBarchart></b-card-text>
         </b-col>
 
         <b-col class="b-col" md="6">
           <Heatmap :matrix_loc="aggrHeatMap"></Heatmap>
+        </b-col>
+      </b-row>
+
+      <!-- Employers List -->
+
+      <b-row id="Employers List" align-v="stretch" class="b-row mt-5">
+        <b-col class="b-col" md="6">
+          <EmployerList :employers_lst="this.employers"></EmployerList>
         </b-col>
       </b-row>
 
@@ -41,6 +51,8 @@
 import StackBarchart from '@/components/StackBarchart.vue';
 import Calendar from "@/components/Calendar";
 import Heatmap from "@/components/Heatmap";
+import EmployerList from "@/components/EmployerList";
+import {crossfilter} from "crossfilter/crossfilter";
 
 function findIntervalRange(hour){
   switch (hour){
@@ -80,7 +92,8 @@ export default {
   components: {
     StackBarchart,
     Calendar,
-    Heatmap
+    Heatmap,
+    EmployerList
   },
   data() {
     return {
@@ -92,12 +105,15 @@ export default {
         aggrBarChartMap: new Map(),
         hour_amount: new Map(),
         aggrHeatMap:new Map(),
-        aggrTrans:true
+        aggrTrans:true,
+        EmpType: Array,
+        employers: new Map(),
+        employers_sel: [],
     }
   },
   mounted() {
 
-    /**Lettura e Parsing dei due data set */
+    /** Lettura e Parsing dei due data set */
 
      d3.csv('/csv/df_cc_loyalty.csv')
           .then((rows) => {
@@ -176,7 +192,25 @@ export default {
                   timestamp_id: i
                 };
               });
+          let gps_car_CC = crossfilter(gps_car);
+          let empTypeD = gps_car_CC.dimension(d => { return d.CurrentEmploymentType});
+          // all types of employment -- unique values
+          console.log("unique employer type", empTypeD.group().reduceCount().all().map(d => d.key));
           console.log("gps_car: ", gps_car);
+          let Employers_Set = new Set();
+          gps_car.forEach((el) => {
+            Employers_Set.add(JSON.stringify({Fullname: el.fullname, CarID: parseInt(el.CarID),
+            Title: el.CurrentEmploymentTitle, Type:el.CurrentEmploymentType}))})
+          console.log("Employer Set: ", Employers_Set);
+          let emp_list = []
+          function parseSetElements(entry) {
+            emp_list.push(JSON.parse(entry));
+          }
+          Employers_Set.forEach(parseSetElements);
+          console.log("Employer List",emp_list);
+          let emp_listByType = d3.group(emp_list, d => d.Type)
+          console.log("emloyers",emp_listByType);
+          this.employers = emp_listByType;
         });
   },
   computed:{
@@ -228,6 +262,11 @@ export default {
         this.aggrBarChartMap = this.loc_amount;
       }
     },
+    /* Given a List of selected Employers filters Stack BarChart and HeatMap */
+    filterEmployers(employers_list){
+      this.employers_sel = employers_list;
+      console.log(this.employers_sel);
+    }
   },
   watch: {
 
@@ -245,6 +284,10 @@ export default {
 }
 b-navbar{
   margin-top:1px;
+}
+#BarHeat{
+  margin-top:5px;
+  margin-bottom:20px;
 }
 #map-container {
   height: fit-content;

@@ -113,7 +113,7 @@ export default {
             },
             options: {
                 displayModeBar: false,
-                scrollZoom: true,
+                scrollZoom: false,
                 responsive: true
             },
 
