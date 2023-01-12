@@ -11,7 +11,7 @@
               <b-tab title="Engineering" active>
                 <b-row><b-col md="4"><b>Engineering</b></b-col>
                   <b-col>
-                    <b-button  v-if="eng_sel.length<rows_eng" variant="info" size="sm" @click="selectAll('Engineering')">Select All</b-button>
+                    <b-button  v-if="eng_sel.length<13" variant="info" size="sm" @click="selectAll('Engineering')">Select All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Select All</b-button>
                     <b-button  v-if="eng_sel.length>=1" variant="info" size="sm" @click="clearAll('Engineering')">Unselect All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Unselect All</b-button>
@@ -33,7 +33,7 @@
                   </div>
                   <b-pagination
                       v-model="currentPage_eng"
-                      :total-rows="rows_eng"
+                      :total-rows="13"
                       :per-page="perPage"
                       aria-controls="t_eng"
                   ></b-pagination>
@@ -42,7 +42,7 @@
               <b-tab title="Executive">
                 <b-row><b-col md="4"><b>Executive</b></b-col>
                   <b-col>
-                    <b-button  v-if="exec_sel.length<rows_exec" variant="info" size="sm" @click="selectAll('Executive')">Select All</b-button>
+                    <b-button  v-if="exec_sel.length<5" variant="info" size="sm" @click="selectAll('Executive')">Select All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Select All</b-button>
                     <b-button  v-if="exec_sel.length>=1" variant="info" size="sm" @click="clearAll('Executive')">Unselect All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Unselect All</b-button>
@@ -69,7 +69,7 @@
               <b-tab title="Facilities">
                 <b-row><b-col md="4"><b>Facilities</b></b-col>
                   <b-col>
-                    <b-button  v-if="fac_sel.length<rows_fac" variant="info" size="sm" @click="selectAll('Facilities')">Select All</b-button>
+                    <b-button  v-if="fac_sel.length<6" variant="info" size="sm" @click="selectAll('Facilities')">Select All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Select All</b-button>
                     <b-button  v-if="fac_sel.length>=1" variant="info" size="sm" @click="clearAll('Facilities')">Unselect All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Unselect All</b-button>
@@ -96,7 +96,7 @@
               <b-tab title="Information Technology">
                 <b-row><b-col md="4"><b>Information Technology</b></b-col>
                   <b-col>
-                    <b-button  v-if="IT_sel.length<rows_IT" variant="info" size="sm" @click="selectAll('Information Technology')">Select All</b-button>
+                    <b-button  v-if="IT_sel.length<5" variant="info" size="sm" @click="selectAll('Information Technology')">Select All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Select All</b-button>
                     <b-button  v-if="IT_sel.length>=1" variant="info" size="sm" @click="clearAll('Information Technology')">Unselect All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Unselect All</b-button>
@@ -123,7 +123,7 @@
               <b-tab title="Security">
                 <b-row><b-col md="3"><b>Security</b></b-col>
                   <b-col>
-                    <b-button  v-if="sec_sel.length<rows_sec" variant="info" size="sm" @click="selectAll('Security')">Select All</b-button>
+                    <b-button  v-if="sec_sel.length<11" variant="info" size="sm" @click="selectAll('Security')">Select All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Select All</b-button>
                     <b-button  v-if="sec_sel.length>=1" variant="info" size="sm" @click="clearAll('Security')">Unselect All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Unselect All</b-button>
@@ -146,7 +146,7 @@
                     </div>
                     <b-pagination
                         v-model="currentPage_sec"
-                        :total-rows="rows_sec"
+                        :total-rows="11"
                         :per-page="perPage"
                         aria-controls="t_sec"
                     ></b-pagination>
@@ -180,34 +180,17 @@ export default {
         exec_sel:[],
         fields: ["Fullname", "CarID", "Title","select"],
         layout: {
-          height:350,
+          height:351,
           annotations: []
         }
       }
 },
-  computed: {
-    rows_sec() {
-      return this.employers_lst.get("Security").length
-    },
-    rows_IT() {
-      return this.employers_lst.get("Information Technology").length
-    },
-    rows_fac() {
-      return this.employers_lst.get("Facilities").length
-    },
-    rows_exec() {
-      return this.employers_lst.get("Executive").length
-    },
-    rows_eng() {
-      return this.employers_lst.get("Engineering").length
-    }
-  },
   watch: {
     // whenever data changes, this function will run
     employers_lst(employers) {
       console.log("employers In Component Child", employers);
       console.log("employers In Component Child", employers);
-      console.log("Current Page", this.currentPage);
+      console.log("Current Page", employers.get("Engineering").length);
     }
   },
   methods: {
@@ -229,6 +212,9 @@ export default {
           this.eng_sel.push(item);
           break;
       }
+      this.employers_selected.push(item);
+      const emp = this.employers_selected;
+      this.$emit('get-employers', emp);
     },
     deleteItem(item,type) {
       switch (type){
@@ -248,6 +234,10 @@ export default {
           this.eng_sel.splice(this.eng_sel.indexOf(item), 1);
           break;
       }
+      /*remove element for filter graphs*/
+      this.employers_selected.splice(this.employers_selected.indexOf(item), 1);
+      const emp = this.employers_selected;
+      this.$emit('get-employers', emp);
     },
     selectAll(type){
       switch (type){
@@ -255,6 +245,7 @@ export default {
           this.employers_lst.get('Security').forEach((element) => {
             if(!this.sec_sel.includes(element)){
               this.sec_sel.push(element);
+              this.employers_selected.push(element);
             }
           })
           break;
@@ -262,6 +253,7 @@ export default {
           this.employers_lst.get('Executive').forEach((element) => {
             if(!this.exec_sel.includes(element)){
               this.exec_sel.push(element);
+              this.employers_selected.push(element);
             }
           })
           break;
@@ -269,6 +261,7 @@ export default {
           this.employers_lst.get('Information Technology').forEach((element) => {
             if(!this.IT_sel.includes(element)){
               this.IT_sel.push(element);
+              this.employers_selected.push(element);
             }
           })
           break;
@@ -276,6 +269,7 @@ export default {
           this.employers_lst.get('Facilities').forEach((element) => {
             if(!this.fac_sel.includes(element)){
               this.fac_sel.push(element);
+              this.employers_selected.push(element);
             }
           })
           break;
@@ -283,10 +277,13 @@ export default {
           this.employers_lst.get('Engineering').forEach((element) => {
             if(!this.eng_sel.includes(element)){
               this.eng_sel.push(element);
+              this.employers_selected.push(element);
             }
           })
           break;
       }
+      const emp = this.employers_selected;
+      this.$emit('get-employers', emp);
     },
     clearAll(type){
       switch (type){
@@ -295,6 +292,7 @@ export default {
             if(this.sec_sel.includes(element)){
               const index = this.sec_sel.indexOf(element);
               this.sec_sel.splice(index, 1);
+              this.employers_selected.splice(this.employers_selected.indexOf(element), 1);
             }
           })
           break;
@@ -303,6 +301,7 @@ export default {
             if(this.exec_sel.includes(element)){
               const index = this.exec_sel.indexOf(element);
               this.exec_sel.splice(index, 1);
+              this.employers_selected.splice(this.employers_selected.indexOf(element), 1);
             }
           })
           break;
@@ -311,6 +310,7 @@ export default {
             if(this.IT_sel.includes(element)){
               const index = this.IT_sel.indexOf(element);
               this.IT_sel.splice(index, 1);
+              this.employers_selected.splice(this.employers_selected.indexOf(element), 1);
             }
           })
           break;
@@ -319,6 +319,7 @@ export default {
             if(this.eng_sel.includes(element)){
               const index = this.eng_sel.indexOf(element);
               this.eng_sel.splice(index, 1);
+              this.employers_selected.splice(this.employers_selected.indexOf(element), 1);
             }
           })
           break;
@@ -327,10 +328,13 @@ export default {
             if(this.fac_sel.includes(element)){
               const index = this.fac_sel.indexOf(element);
               this.fac_sel.splice(index, 1);
+              this.employers_selected.splice(this.employers_selected.indexOf(element), 1);
             }
           })
           break;
       }
+      const emp = this.employers_selected;
+      this.$emit('get-employers', emp);
     }
   }
 }

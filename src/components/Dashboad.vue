@@ -38,7 +38,7 @@
 
       <b-row id="Employers List" align-v="stretch" class="b-row mt-5">
         <b-col class="b-col" md="6">
-          <EmployerList :employers_lst="this.employers"></EmployerList>
+          <EmployerList @get-employers="filterEmployers" :employers_lst="this.employers"></EmployerList>
         </b-col>
       </b-row>
 
@@ -178,6 +178,7 @@ export default {
         .then((rows) => {
           const gps_car = rows
               .map((row,i) => {
+                let range = findIntervalRange(row.Hour);
                 return {
                   CarID: row.CarID,
                   CurrentEmploymentType:  row.CurrentEmploymentType,
@@ -185,11 +186,13 @@ export default {
                   fullname: row.FullName,
                   lat: row.lat,
                   long: row.long,
+                  coordinate: row.lat + " " + row.long,
                   date: row.date,
                   hour: row.Hour,
                   minutes: row.Minutes,
                   seconds: row.Seconds,
-                  timestamp_id: i
+                  timestamp_id: i,
+                  rangeHour:range
                 };
               });
           let gps_car_CC = crossfilter(gps_car);
@@ -209,6 +212,13 @@ export default {
           Employers_Set.forEach(parseSetElements);
           console.log("Employer List",emp_list);
           let emp_listByType = d3.group(emp_list, d => d.Type)
+          let gpsByCarDate = d3.group(gps_car, d =>d.CarID, d => d.date);
+          gpsByCarDate.forEach((day) => {
+            day.forEach(() => {
+
+            } )
+          } )
+          console.log("Group by strana",gpsByCarDate);
           console.log("emloyers",emp_listByType);
           this.employers = emp_listByType;
         });
@@ -236,6 +246,7 @@ export default {
 
       //filter bar chart stack per day selected
       let cc_loyalty_cards = this.dataPayments;
+      /*check if day is empty*/
       if (day) {
         cc_loyalty_cards =  cc_loyalty_cards.filter(d => d.date == day)
       }
@@ -264,8 +275,8 @@ export default {
     },
     /* Given a List of selected Employers filters Stack BarChart and HeatMap */
     filterEmployers(employers_list){
+      console.log("DIPENDENTI NELLA DASH",employers_list);
       this.employers_sel = employers_list;
-      console.log(this.employers_sel);
     }
   },
   watch: {
