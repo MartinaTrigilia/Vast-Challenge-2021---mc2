@@ -42,6 +42,13 @@
         </b-col>
       </b-row>
 
+      <!-- Abila Map -->
+      <b-row id="Abila Map" align-v="stretch" class="b-row mt-5">
+        <b-col class="b-col">
+          <AbilaMap/>
+        </b-col>
+      </b-row>
+
 
     </b-container>
 </template>
@@ -52,6 +59,7 @@ import StackBarchart from '@/components/StackBarchart.vue';
 import Calendar from "@/components/Calendar";
 import Heatmap from "@/components/Heatmap";
 import EmployerList from "@/components/EmployerList";
+import AbilaMap from "@/components/AbilaMap";
 import {crossfilter} from "crossfilter/crossfilter";
 
 function findIntervalRange(hour){
@@ -93,7 +101,8 @@ export default {
     StackBarchart,
     Calendar,
     Heatmap,
-    EmployerList
+    EmployerList,
+    AbilaMap
   },
   data() {
     return {

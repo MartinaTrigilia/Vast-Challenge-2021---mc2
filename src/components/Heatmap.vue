@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="HeatMap">
     <vue-plotly class="" :data="data" :layout="layout" :options="options"/>
   </div>
 </template>
@@ -98,13 +98,15 @@ export default {
       },
       ],
       layout: {
-        height:350,
+        height: 450,
+        width: 700,
         title: '',
         annotations: [],
         xaxis: {
-          ticks: '',
+          height: 100,
+          ticks: { height: 500},
           side: 'bottom'
-        },
+      },
         yaxis: {
           ticks: '',
           ticksuffix: ' ',
@@ -150,3 +152,11 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.HeatMap{
+  height: 600px;
+  width: 600px;
+  /*marginRight: 40px;*/
+}
+</style>

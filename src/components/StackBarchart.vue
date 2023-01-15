@@ -1,15 +1,14 @@
 <template>
     <div>
-        <vue-plotly class="" :data="data" :layout="layout" :options="options"/>
-    </div>  
+      <vue-plotly  class="" :data="data" :layout="layout" :options="options"/>
+    </div>
 </template>
-
 <script>
 import VuePlotly from '@statnett/vue-plotly';
 
-
 export default {
-    name: 'StackBarchart',
+
+  name: 'StackBarchart',
     components: {
         VuePlotly
     },
@@ -54,7 +53,14 @@ export default {
 
       return {
 
-            data: [{
+            data: [
+              {
+                label: 'Moving Avg',
+                avg:[30,40,20,25,45,30,30,30,40,50,60,70,70,10,10,10,23,24,35,56,35,22,22,45,67,35,24,25,26,25,53,24],
+                borderColor: 'rgb(75, 192, 192)',
+                tension:0.5,
+                type: 'line'
+            }, {
                 x: unique_loc,
                 y:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                 type: 'bar',
@@ -116,7 +122,6 @@ export default {
                 scrollZoom: false,
                 responsive: true
             },
-
         }
     },
 
@@ -157,9 +162,12 @@ export default {
         this.data[1].x = x_axis;
         this.data[2].x = x_axis;
 
+        console.log("Avg line", this.data[3].data);
+
         this.layout.title.text = "Popularity of All location";
         },
         deep: true
-    }
+    },
 }
 </script>
+
