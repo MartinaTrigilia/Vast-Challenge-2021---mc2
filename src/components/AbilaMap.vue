@@ -7,7 +7,7 @@
       <span>Bounds: {{ bounds }}</span>
     </div>
     <l-map
-        style="height: 500px"
+        style="height: 350px"
         :zoom="zoom"
         :maxZoom="maxZoom"
         :minZoom="minZoom"
@@ -20,19 +20,23 @@
       <l-geo-json :geojson="geojsonIsl" :options-style="styleFunction"></l-geo-json>
 
       <l-geo-json :geojson="geojson" :options-style="styleFunction"></l-geo-json>
+      <l-polyline :lat-lngs="dataGPS.get('2014-01-06')"></l-polyline>
 
     </l-map>
   </div>
 </template>
 
 <script>
-import {LMap, LTileLayer,LGeoJson} from 'vue2-leaflet';
-
+import {LMap, LTileLayer,LGeoJson,LPolyline} from 'vue2-leaflet';
 export default {
   components: {
     LMap,
     LTileLayer,
-    LGeoJson
+    LGeoJson,
+    LPolyline
+  },
+  props:{
+    dataGPS: Map,
   },
   data () {
     return {
@@ -57,6 +61,7 @@ export default {
     this.geojsonIsl = data2;
     this.geojson = data;
   },
+
   methods: {
     zoomUpdated (zoom) {
       this.zoom = zoom;
@@ -66,6 +71,11 @@ export default {
     },
     boundsUpdated (bounds) {
       this.bounds = bounds;
+    }
+  },
+  watch: {
+    dataGPS(dataGPS){
+      console.log("GPS DATA IN MAP", dataGPS);
     }
   },
   computed: {

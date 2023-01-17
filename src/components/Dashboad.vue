@@ -45,7 +45,7 @@
       <!-- Abila Map -->
       <b-row id="Abila Map" align-v="stretch" class="b-row mt-5">
         <b-col class="b-col">
-          <AbilaMap/>
+          <AbilaMap :dataGPS="this.dataGPS"/>
         </b-col>
       </b-row>
 
@@ -107,7 +107,7 @@ export default {
   data() {
     return {
         dataPayments: Array,
-        dataGPS: [],
+        dataGPS: new Map(),
         selectedDay: ' ',
         loc_amount: new Map(),
         loc_trans: new Map(),
@@ -201,11 +201,13 @@ export default {
                   minutes: row.Minutes,
                   seconds: row.Seconds,
                   timestamp_id: i,
+                  path_id : row.PathID,
                   rangeHour:range
                 };
               });
           let gps_car_CC = crossfilter(gps_car);
           let empTypeD = gps_car_CC.dimension(d => { return d.CurrentEmploymentType});
+
           // all types of employment -- unique values
           console.log("unique employer type", empTypeD.group().reduceCount().all().map(d => d.key));
           console.log("gps_car: ", gps_car);
@@ -221,15 +223,26 @@ export default {
           Employers_Set.forEach(parseSetElements);
           console.log("Employer List",emp_list);
           let emp_listByType = d3.group(emp_list, d => d.Type)
-          let gpsByCarDate = d3.group(gps_car, d =>d.CarID, d => d.date);
-          gpsByCarDate.forEach((day) => {
-            day.forEach(() => {
 
-            } )
-          } )
-          console.log("Group by strana",gpsByCarDate);
           console.log("emloyers",emp_listByType);
           this.employers = emp_listByType;
+
+          /*gps path*/
+          //const dateD = d3.rollup(gps_car, v => v.date)
+          const gpsByDate = d3.group(gps_car, v => v.date, v => v.path_id)
+          let coords = new Map();
+          gpsByDate.forEach((value,key) => {
+            let coords_lst = [];
+            console.log("val",value);
+            console.log("key",key);
+            value.forEach((path) => {
+              path.forEach((element) => {
+                coords_lst.push([element.lat,element.long]);
+              })
+            })
+            coords.set(key,coords_lst);
+          })
+          this.dataGPS = coords;
         });
   },
   computed:{
