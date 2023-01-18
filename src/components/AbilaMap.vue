@@ -20,8 +20,8 @@
       <l-geo-json :geojson="geojsonIsl" :options-style="styleFunction"></l-geo-json>
 
       <l-geo-json :geojson="geojson" :options-style="styleFunction"></l-geo-json>
-      <l-polyline :lat-lngs="dataGPS.get('2014-01-06')"></l-polyline>
-
+      <l-polyline
+          v-for="(item,ind) in this.disp" :key="ind" :lat-lngs=item></l-polyline>
     </l-map>
   </div>
 </template>
@@ -36,7 +36,7 @@ export default {
     LPolyline
   },
   props:{
-    dataGPS: Map,
+    pathCoords: Map,
   },
   data () {
     return {
@@ -48,7 +48,8 @@ export default {
       center: [36.069082, 24.867382],
       bounds: null,
       geojson: null,
-      geojsonIsl: null
+      geojsonIsl: null,
+      disp: Object
 
 
     };
@@ -74,8 +75,9 @@ export default {
     }
   },
   watch: {
-    dataGPS(dataGPS){
-      console.log("GPS DATA IN MAP", dataGPS);
+    pathCoords(pathCoords){
+      this.disp = Object.fromEntries(pathCoords);
+      console.log("GPS DATA IN MAP", this.disp);
     }
   },
   computed: {

@@ -45,7 +45,7 @@
       <!-- Abila Map -->
       <b-row id="Abila Map" align-v="stretch" class="b-row mt-5">
         <b-col class="b-col">
-          <AbilaMap :dataGPS="this.dataGPS"/>
+          <AbilaMap :pathCoords="this.pathCoords"/>
         </b-col>
       </b-row>
 
@@ -107,7 +107,7 @@ export default {
   data() {
     return {
         dataPayments: Array,
-        dataGPS: new Map(),
+        pathCoords: new Map(),
         selectedDay: ' ',
         loc_amount: new Map(),
         loc_trans: new Map(),
@@ -229,20 +229,35 @@ export default {
 
           /*gps path*/
           //const dateD = d3.rollup(gps_car, v => v.date)
-          const gpsByDate = d3.group(gps_car, v => v.date, v => v.path_id)
-          let coords = new Map();
+          const gpsByPath = d3.group(gps_car, v => v.path_id)
+          let path_coord = new Map();
+          /* create a map that link each path with its coordinates list */
+          gpsByPath.forEach((el,path) => {
+            let coord_list = [];
+                el.forEach((coord) =>{
+                  coord_list.push([coord.lat,coord.long]);
+                    }
+                )
+            path_coord.set(path,coord_list);
+              }
+          )
+          /*let coords = new Map();
+
           gpsByDate.forEach((value,key) => {
             let coords_lst = [];
             console.log("val",value);
             console.log("key",key);
-            value.forEach((path) => {
-              path.forEach((element) => {
-                coords_lst.push([element.lat,element.long]);
+            value.forEach((el) => {
+              let coord_path  = [];
+              el.forEach((coord) => {
+                coord_path.push([coord.lat,coord.long]);
               })
             })
             coords.set(key,coords_lst);
           })
-          this.dataGPS = coords;
+          this.dataGPS = coords;*/
+          this.pathCoords = path_coord;
+          console.log("GPS DATA  IN DASH", path_coord);
         });
   },
   computed:{
