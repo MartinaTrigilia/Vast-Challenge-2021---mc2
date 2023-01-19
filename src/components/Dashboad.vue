@@ -45,7 +45,7 @@
       <!-- Abila Map -->
       <b-row id="Abila Map" align-v="stretch" class="b-row mt-5">
         <b-col class="b-col">
-          <AbilaMap :pathCoords="this.pathCoords"/>
+          <AbilaMap :pathCoordsToSend="this.pathCoordsToSend"/>
         </b-col>
       </b-row>
 
@@ -108,6 +108,8 @@ export default {
     return {
         dataPayments: Array,
         pathCoords: new Map(),
+        pathCoordsToSend: new Map(),
+        dayCoords: new Map(),
         selectedDay: ' ',
         loc_amount: new Map(),
         loc_trans: new Map(),
@@ -227,10 +229,11 @@ export default {
           console.log("emloyers",emp_listByType);
           this.employers = emp_listByType;
 
-          /*gps path*/
-          //const dateD = d3.rollup(gps_car, v => v.date)
+          /*gps by path*/
+
           const gpsByPath = d3.group(gps_car, v => v.path_id)
           let path_coord = new Map();
+
           /* create a map that link each path with its coordinates list */
           gpsByPath.forEach((el,path) => {
             let coord_list = [];
@@ -241,25 +244,28 @@ export default {
             path_coord.set(path,coord_list);
               }
           )
-          /*let coords = new Map();
-
-          gpsByDate.forEach((value,key) => {
-            let coords_lst = [];
-            console.log("val",value);
-            console.log("key",key);
-            value.forEach((el) => {
-              let coord_path  = [];
-              el.forEach((coord) => {
-                coord_path.push([coord.lat,coord.long]);
-              })
-            })
-            coords.set(key,coords_lst);
-          })
-          this.dataGPS = coords;*/
           this.pathCoords = path_coord;
-          console.log("GPS DATA  IN DASH", path_coord);
+          this.pathCoordsToSend = this.pathCoords;
+          console.log("GPS DATA  IN DASH", this.pathCoordsToSend);
+
+          /*gps by day and emp*/
+          const gpsByDay = d3.group(gps_car, v => v.date, v=>v.fullname)
+          let day_coord = new Map();
+          gpsByDay.forEach((dip_map,day) => {
+            let map_dip_el = new Map();
+            dip_map.forEach((arr,dip) => {
+              let dip_list = new Set();
+              arr.forEach((ele) => {
+                dip_list.add(ele.path_id);
+              })
+              map_dip_el.set(dip,dip_list);
+            })
+            day_coord.set(day,map_dip_el);
+          })
+          this.dayCoords = day_coord;
+          console.log("GPS DATA  IN DASH",day_coord);
         });
-  },
+    },
   computed:{
   },
   methods:{
@@ -277,9 +283,11 @@ export default {
       }
     },
 
-    /* Given a Date(day) filters Stack BarChart and HeatMap */
+
     filterDay(day) {
       this.selectedDay = day;
+
+      /* Given a Date(day) filters Stack BarChart and HeatMap */
 
       //filter bar chart stack per day selected
       let cc_loyalty_cards = this.dataPayments;
@@ -298,7 +306,8 @@ export default {
         value.set("All",l_a_All.get(key));
       } )
       console.log("Changed day in the main dash", this.selectedDay);
-      // filter heatmap per day selected...
+
+      // filter heatmap per day selected
       this.hour_amount = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price),d => d.rangeHour, d => d.location)
       this.hour_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.rangeHour,d => d.location)
       if(this.aggrTrans){
@@ -309,6 +318,31 @@ export default {
         this.aggrHeatMap = this.hour_amount;
         this.aggrBarChartMap = this.loc_amount;
       }
+
+      /* Given a Date(day) filters Stack GPS and Map */
+      /* case in which there is no employer select yet*/
+      let dayC = this.dayCoords.get(day);
+      if(!this.employers_sel) {
+        let all_path = [];
+        dayC.forEach((array_path) => {
+          array_path.forEach((el) => {
+            all_path.push(el);
+          })
+        })
+        let path_coords = this.pathCoords;
+        for (let k of path_coords.keys()) {
+          if (!(all_path.includes(k))) {
+            path_coords.delete(k);
+          }
+        }
+        this.pathCoordsToSend = path_coords;
+        console.log("DAY SEL COORD DASH ", this.pathCoordsToSend);
+      }
+
+      console.log("DAY SEL COORD DASH ", this.pathCoordsToSend);
+      // è una mappa che associa ad ogni dipendente i loro path.
+      // Devo prendere tutti i path, indipendentemente dal dipendente, e associarl a qul giorno
+      // dopo devo associare ai path le loro ocoord.
     },
     /* Given a List of selected Employers filters Stack BarChart and HeatMap */
     filterEmployers(employers_list){

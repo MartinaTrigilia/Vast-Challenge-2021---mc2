@@ -21,7 +21,11 @@
 
       <l-geo-json :geojson="geojson" :options-style="styleFunction"></l-geo-json>
       <l-polyline
-          v-for="(item,ind) in this.disp" :key="ind" :lat-lngs=item></l-polyline>
+          v-for="(item,ind) in this.disp"
+          :key="ind"
+          :color="randomColor(ind)"
+          :lat-lngs=item>
+      </l-polyline>
     </l-map>
   </div>
 </template>
@@ -36,7 +40,7 @@ export default {
     LPolyline
   },
   props:{
-    pathCoords: Map,
+    pathCoordsToSend: Map,
   },
   data () {
     return {
@@ -44,14 +48,13 @@ export default {
       attribution:
           '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
       zoom: 13,
-      maxZoom:15,minZoom:7,
+      maxZoom:18,minZoom:7,
       center: [36.069082, 24.867382],
       bounds: null,
       geojson: null,
       geojsonIsl: null,
-      disp: Object
-
-
+      disp: Object,
+      colorMap: new Map()
     };
   },
   async created() {
@@ -72,12 +75,26 @@ export default {
     },
     boundsUpdated (bounds) {
       this.bounds = bounds;
-    }
+    },
+    randomColor(ind) {
+      console.log("ciao",this.colorMap.get(parseInt(ind)));
+      return this.colorMap.get(parseInt(ind));
+    },
   },
   watch: {
-    pathCoords(pathCoords){
-      this.disp = Object.fromEntries(pathCoords);
-      console.log("GPS DATA IN MAP", this.disp);
+    pathCoordsToSend(pathCoordsToSend){
+      this.disp = Object.fromEntries(pathCoordsToSend);
+      console.log("HO RICEVUTO");
+      console.log("2DCP", this.disp);
+      let ind_len = 3107;
+      let color_map = new Map();
+      for(let j = 0; j < ind_len; j++){
+        const randomColor = Math.floor(Math.random()*16777215).toString(16);
+        let color= "#" + randomColor;
+        color_map.set(j,color);
+      }
+      this.colorMap = color_map;
+      console.log(this.colorMap);
     }
   },
   computed: {
