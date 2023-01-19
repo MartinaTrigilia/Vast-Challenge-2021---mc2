@@ -144,9 +144,7 @@ export default {
           z_axis[index_rg][index_loc] = price;
         } )
       } )
-      console.log("zValues", z_axis);
       this.data[0].z = z_axis;
-      console.log("z data",this.data[0].z);
     },
     deep: true
   }

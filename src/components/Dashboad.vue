@@ -245,7 +245,7 @@ export default {
               }
           )
           this.pathCoords = path_coord;
-          this.pathCoordsToSend = this.pathCoords;
+          //this.pathCoordsToSend = path_coord;
           console.log("GPS DATA  IN DASH", this.pathCoordsToSend);
 
           /*gps by day and emp*/
@@ -282,8 +282,6 @@ export default {
         this.aggrBarChartMap = this.loc_amount;
       }
     },
-
-
     filterDay(day) {
       this.selectedDay = day;
 
@@ -320,26 +318,26 @@ export default {
       }
 
       /* Given a Date(day) filters Stack GPS and Map */
-      /* case in which there is no employer select yet*/
       let dayC = this.dayCoords.get(day);
-      if(!this.employers_sel) {
+      /* case in which there is no employer select yet*/
+      console.log("about to check emp sele", this.employers_sel.length)
+      if(this.employers_sel.length == 0) {
         let all_path = [];
         dayC.forEach((array_path) => {
           array_path.forEach((el) => {
             all_path.push(el);
           })
         })
-        let path_coords = this.pathCoords;
+        let path_coords = new Map(this.pathCoords);
+        console.log("DAY SEL COORD DASH ", this.pathCoords);
         for (let k of path_coords.keys()) {
           if (!(all_path.includes(k))) {
             path_coords.delete(k);
           }
         }
+        console.log("DAY SEL COORD DASH 2", this.pathCoords);
         this.pathCoordsToSend = path_coords;
-        console.log("DAY SEL COORD DASH ", this.pathCoordsToSend);
       }
-
-      console.log("DAY SEL COORD DASH ", this.pathCoordsToSend);
       // è una mappa che associa ad ogni dipendente i loro path.
       // Devo prendere tutti i path, indipendentemente dal dipendente, e associarl a qul giorno
       // dopo devo associare ai path le loro ocoord.

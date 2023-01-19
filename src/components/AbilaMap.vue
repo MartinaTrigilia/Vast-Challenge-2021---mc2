@@ -77,14 +77,12 @@ export default {
       this.bounds = bounds;
     },
     randomColor(ind) {
-      console.log("ciao",this.colorMap.get(parseInt(ind)));
       return this.colorMap.get(parseInt(ind));
     },
   },
   watch: {
     pathCoordsToSend(pathCoordsToSend){
       this.disp = Object.fromEntries(pathCoordsToSend);
-      console.log("HO RICEVUTO");
       console.log("2DCP", this.disp);
       let ind_len = 3107;
       let color_map = new Map();
