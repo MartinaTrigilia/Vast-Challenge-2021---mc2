@@ -110,6 +110,7 @@ export default {
         pathCoords: new Map(),
         pathCoordsToSend: new Map(),
         dayCoords: new Map(),
+        empCoords: new Map(),
         selectedDay: ' ',
         loc_amount: new Map(),
         loc_trans: new Map(),
@@ -264,6 +265,22 @@ export default {
           })
           this.dayCoords = day_coord;
           console.log("GPS DATA  IN DASH",day_coord);
+
+          const gpsByEmp = d3.group(gps_car, v=>v.fullname, v => v.date);
+          let emp_coord = new Map();
+          gpsByEmp.forEach((day_map,emp) => {
+            let map_day_el = new Map();
+            day_map.forEach((arr,day) => {
+              let day_list = new Set();
+              arr.forEach((ele) => {
+                day_list.add(ele.path_id);
+              })
+              map_day_el.set(day,day_list);
+            })
+            emp_coord.set(emp,map_day_el);
+          })
+          this.empCoords = emp_coord;
+          console.log("emp_coord", emp_coord);
         });
     },
   computed:{
@@ -320,7 +337,6 @@ export default {
       /* Given a Date(day) filters Stack GPS and Map */
       let dayC = this.dayCoords.get(day);
       /* case in which there is no employer select yet*/
-      console.log("about to check emp sele", this.employers_sel.length)
       if(this.employers_sel.length == 0) {
         let all_path = [];
         dayC.forEach((array_path) => {
@@ -346,6 +362,28 @@ export default {
     filterEmployers(employers_list){
       console.log("DIPENDENTI NELLA DASH",employers_list);
       this.employers_sel = employers_list;
+      console.log("empCoords", this.empCoords);
+      /* Given a list of employers filters Stack GPS and Map */
+      if(this.selectedDay == ' '){
+        let all_path = [];
+        employers_list.forEach((k) => {
+          console.log("k",k.Fullname);
+          let empC = this.empCoords.get(k.Fullname);
+          empC.forEach((array_path) => {
+            array_path.forEach((el) => {
+              all_path.push(el);
+            })
+          })})
+          let path_coords = new Map(this.pathCoords);
+          console.log("DAY SEL COORD DASH ", this.pathCoords);
+          for (let k of path_coords.keys()) {
+            if (!(all_path.includes(k))) {
+              path_coords.delete(k);
+            }
+          }
+          console.log("DAY SEL COORD DASH 2", this.pathCoords);
+          this.pathCoordsToSend = path_coords;
+      }
     }
   },
   watch: {
