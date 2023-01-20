@@ -384,17 +384,19 @@ export default {
         }
       } else{
         console.log("Giorno non c'è",this.pathCoordsToSend.clear());
-        this.pathCoordsToSend = this.pathCoordsToSend.clear();
+        //this.pathCoordsToSend = this.pathCoordsToSend.clear();
         //this.pathCoordsToSend
+        this.filterEmployers(this.employers_sel);
       }
       },
     /* Given a List of selected Employers filter the Map */
     filterEmployers(employers_list){
       console.log("DIPENDENTI NELLA DASH",employers_list);
       this.employers_sel = employers_list;
-      console.log("empCoords", this.empCoords);
+      console.log("selectedDay", this.selectedDay.length);
       /* Given a list of employers filters Stack GPS and Map */
-      if(this.selectedDay == ' '){
+      if(this.selectedDay == ' ' || this.selectedDay==0){
+        console.log("selectedDay", typeof (this.selectedDay));
         this.selected_all = false;
         let all_path = [];
         employers_list.forEach((k) => {
