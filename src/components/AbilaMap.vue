@@ -48,7 +48,7 @@ export default {
       attribution:
           '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
       zoom: 13,
-      maxZoom:18,minZoom:7,
+      maxZoom:20,minZoom:7,
       center: [36.069082, 24.867382],
       bounds: null,
       geojson: null,

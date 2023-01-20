@@ -384,6 +384,43 @@ export default {
           console.log("DAY SEL COORD DASH 2", this.pathCoords);
           this.pathCoordsToSend = path_coords;
       }
+      else {
+        console.log("DAY sono nel else", this.empCoords);
+        let all_path = [];
+        employers_list.forEach((k) => {
+          console.log("k",k.Fullname);
+          let empC = this.empCoords.get(k.Fullname).get(this.selectedDay);
+          console.log("empC",empC);
+          empC = Array.from(empC);
+          empC.forEach((el) => {
+              all_path.push(el);
+          })})
+        let path_coords = new Map(this.pathCoords);
+        console.log("DAY SEL COORD DASH ", this.pathCoords);
+        for (let k of path_coords.keys()) {
+          if (!(all_path.includes(k))) {
+            path_coords.delete(k);
+          }
+        }
+        console.log("DAY SEL COORD DASH 2", path_coords);
+        this.pathCoordsToSend = path_coords;
+        //let all_path = [];
+        /*let empC = this.empCoords.get(this.selectedDay);
+        empC.forEach((array_path) => {
+          array_path.forEach((el) => {
+            all_path.push(el);
+          })
+        })
+        let path_coords = new Map(this.pathCoords);
+        console.log("DAY SEL COORD DASH ", this.pathCoords);
+        for (let k of path_coords.keys()) {
+          if (!(all_path.includes(k))) {
+            path_coords.delete(k);
+          }
+        }
+        console.log("DAY SEL COORD DASH 2", this.pathCoords);
+        this.pathCoordsToSend = path_coords;*/
+      }
     }
   },
   watch: {
