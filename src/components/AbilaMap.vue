@@ -82,17 +82,21 @@ export default {
   },
   watch: {
     pathCoordsToSend(pathCoordsToSend){
-      this.disp = Object.fromEntries(pathCoordsToSend);
-      console.log("2DCP", this.disp);
-      let ind_len = 3107;
-      let color_map = new Map();
-      for(let j = 0; j < ind_len; j++){
-        const randomColor = Math.floor(Math.random()*16777215).toString(16);
-        let color= "#" + randomColor;
-        color_map.set(j,color);
+      if(typeof pathCoordsToSend !== "undefined"){
+        this.disp = Object.fromEntries(pathCoordsToSend);
+        console.log("2DCP", this.disp);
+        let ind_len = 3107;
+        let color_map = new Map();
+        for(let j = 0; j < ind_len; j++){
+          const randomColor = Math.floor(Math.random()*16777215).toString(16);
+          let color= "#" + randomColor;
+          color_map.set(j,color);
+        }
+        this.colorMap = color_map;
+        console.log(this.colorMap);
+      }else {
+        this.disp = {}
       }
-      this.colorMap = color_map;
-      console.log(this.colorMap);
     }
   },
   computed: {

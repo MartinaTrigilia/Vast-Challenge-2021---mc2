@@ -38,7 +38,11 @@
 
       <b-row id="Employers List" align-v="stretch" class="b-row mt-5">
         <b-col class="b-col" md="6">
-          <EmployerList @get-employers="filterEmployers" :employers_lst="this.employers"></EmployerList>
+          <EmployerList
+              @get-employers="filterEmployers"
+              :employers_lst="this.employers"
+              :selected_all="this.selected_all"
+          ></EmployerList>
         </b-col>
       </b-row>
 
@@ -121,6 +125,7 @@ export default {
         EmpType: Array,
         employers: new Map(),
         employers_sel: [],
+        selected_all: false
     }
   },
   mounted() {
@@ -335,36 +340,62 @@ export default {
       }
 
       /* Given a Date(day) filters Stack GPS and Map */
-      let dayC = this.dayCoords.get(day);
-      /* case in which there is no employer select yet*/
-      if(this.employers_sel.length == 0) {
-        let all_path = [];
-        dayC.forEach((array_path) => {
-          array_path.forEach((el) => {
-            all_path.push(el);
+      if(day) {
+        console.log("Giorno c'è");
+        /* case in which there is no employer select yet*/
+        if (this.employers_sel.length == 0) {
+          /*this.employers_sel = employers_list;
+          let dayC = this.dayCoords.get(day);
+          let all_path = [];
+          dayC.forEach((array_path) => {
+            array_path.forEach((el) => {
+              all_path.push(el);
+            })
           })
-        })
-        let path_coords = new Map(this.pathCoords);
-        console.log("DAY SEL COORD DASH ", this.pathCoords);
-        for (let k of path_coords.keys()) {
-          if (!(all_path.includes(k))) {
-            path_coords.delete(k);
+          let path_coords = new Map(this.pathCoords);
+          console.log("DAY SEL COORD DASH ", this.pathCoords);
+          for (let k of path_coords.keys()) {
+            if (!(all_path.includes(k))) {
+              path_coords.delete(k);
+            }
           }
+          this.pathCoordsToSend = path_coords;*/
+          this.selected_all = true;
+        } else {
+          this.selected_all = false;
+          console.log("DAY sono nel els", this.dayCoords.get(day));
+          let all_path = [];
+          this.employers_sel.forEach((k) => {
+            console.log("k", k.Fullname);
+            let dayC = this.dayCoords.get(day).get(k.Fullname);
+            console.log("dayC else", dayC);
+            dayC = Array.from(dayC);
+            dayC.forEach((el) => {
+              all_path.push(el);
+            })
+          })
+          let path_coords = new Map(this.pathCoords);
+          for (let k of path_coords.keys()) {
+            if (!(all_path.includes(k))) {
+              path_coords.delete(k);
+            }
+          }
+          this.pathCoordsToSend = path_coords;
         }
-        console.log("DAY SEL COORD DASH 2", this.pathCoords);
-        this.pathCoordsToSend = path_coords;
+      } else{
+        console.log("Giorno non c'è",this.pathCoordsToSend.clear());
+        this.pathCoordsToSend = this.pathCoordsToSend.clear();
+        //this.pathCoordsToSend
       }
-      // è una mappa che associa ad ogni dipendente i loro path.
-      // Devo prendere tutti i path, indipendentemente dal dipendente, e associarl a qul giorno
-      // dopo devo associare ai path le loro ocoord.
-    },
-    /* Given a List of selected Employers filters Stack BarChart and HeatMap */
+      },
+    /* Given a List of selected Employers filter the Map */
     filterEmployers(employers_list){
       console.log("DIPENDENTI NELLA DASH",employers_list);
       this.employers_sel = employers_list;
       console.log("empCoords", this.empCoords);
       /* Given a list of employers filters Stack GPS and Map */
       if(this.selectedDay == ' '){
+        this.selected_all = false;
         let all_path = [];
         employers_list.forEach((k) => {
           console.log("k",k.Fullname);
@@ -381,20 +412,22 @@ export default {
               path_coords.delete(k);
             }
           }
-          console.log("DAY SEL COORD DASH 2", this.pathCoords);
           this.pathCoordsToSend = path_coords;
       }
       else {
-        console.log("DAY sono nel else", this.empCoords);
+        this.selected_all = false;
         let all_path = [];
+        console.log("DIPENDENTI NELLA DASH 2",employers_list);
         employers_list.forEach((k) => {
           console.log("k",k.Fullname);
-          let empC = this.empCoords.get(k.Fullname).get(this.selectedDay);
-          console.log("empC",empC);
-          empC = Array.from(empC);
-          empC.forEach((el) => {
+          if(this.empCoords.get(k.Fullname).has(this.selectedDay)){
+            let empC = this.empCoords.get(k.Fullname).get(this.selectedDay);
+            console.log("empC",empC);
+            empC = Array.from(empC);
+            empC.forEach((el) => {
               all_path.push(el);
-          })})
+            })
+          }})
         let path_coords = new Map(this.pathCoords);
         console.log("DAY SEL COORD DASH ", this.pathCoords);
         for (let k of path_coords.keys()) {
@@ -404,22 +437,6 @@ export default {
         }
         console.log("DAY SEL COORD DASH 2", path_coords);
         this.pathCoordsToSend = path_coords;
-        //let all_path = [];
-        /*let empC = this.empCoords.get(this.selectedDay);
-        empC.forEach((array_path) => {
-          array_path.forEach((el) => {
-            all_path.push(el);
-          })
-        })
-        let path_coords = new Map(this.pathCoords);
-        console.log("DAY SEL COORD DASH ", this.pathCoords);
-        for (let k of path_coords.keys()) {
-          if (!(all_path.includes(k))) {
-            path_coords.delete(k);
-          }
-        }
-        console.log("DAY SEL COORD DASH 2", this.pathCoords);
-        this.pathCoordsToSend = path_coords;*/
       }
     }
   },
