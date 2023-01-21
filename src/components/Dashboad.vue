@@ -49,10 +49,10 @@
       <!-- Abila Map -->
       <b-row id="Abila Map" align-v="stretch" class="b-row mt-5">
         <b-col class="b-col">
-          <AbilaMap :pathCoordsToSend="this.pathCoordsToSend"/>
+          <AbilaMap :pathCoordsToSend="this.pathCoordsToSend" :colorMap="this.colorMap"/>
         </b-col>
-      </b-row>
 
+      </b-row>
 
     </b-container>
 </template>
@@ -125,9 +125,9 @@ export default {
         EmpType: Array,
         employers: new Map(),
         employers_sel: [],
-        selected_all: false
-    }
-  },
+        selected_all: false,
+        colorMap: new Map(),
+  }},
   mounted() {
 
     /** Lettura e Parsing dei due data set */
@@ -190,6 +190,13 @@ export default {
 
           });
 
+    function assignColorToPath(colorMap,ind){
+      const randomColor = Math.floor(Math.random()*16777215).toString(16);
+      let color= "#" + randomColor;
+      colorMap.set(ind,color);
+      console.log("color map in assign", colorMap.get(ind));
+      return colorMap.get(ind);
+    }
     /* Import Gps and Car Cards Data */
     d3.csv('/csv/df_gps_car.csv')
         .then((rows) => {
@@ -252,6 +259,9 @@ export default {
           )
           this.pathCoords = path_coord;
           //this.pathCoordsToSend = path_coord;
+          [...this.pathCoords.keys()].forEach(key => {
+            assignColorToPath(this.colorMap, key);
+          })
           console.log("GPS DATA  IN DASH", this.pathCoordsToSend);
 
           /*gps by day and emp*/
@@ -344,22 +354,6 @@ export default {
         console.log("Giorno c'è");
         /* case in which there is no employer select yet*/
         if (this.employers_sel.length == 0) {
-          /*this.employers_sel = employers_list;
-          let dayC = this.dayCoords.get(day);
-          let all_path = [];
-          dayC.forEach((array_path) => {
-            array_path.forEach((el) => {
-              all_path.push(el);
-            })
-          })
-          let path_coords = new Map(this.pathCoords);
-          console.log("DAY SEL COORD DASH ", this.pathCoords);
-          for (let k of path_coords.keys()) {
-            if (!(all_path.includes(k))) {
-              path_coords.delete(k);
-            }
-          }
-          this.pathCoordsToSend = path_coords;*/
           this.selected_all = true;
         } else {
           this.selected_all = false;
@@ -440,11 +434,8 @@ export default {
         console.log("DAY SEL COORD DASH 2", path_coords);
         this.pathCoordsToSend = path_coords;
       }
-    }
-  },
-  watch: {
-
-  },
+    },
+  }
 }
 </script>
 

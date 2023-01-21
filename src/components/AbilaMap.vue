@@ -41,6 +41,7 @@ export default {
   },
   props:{
     pathCoordsToSend: Map,
+    colorMap:Map
   },
   data () {
     return {
@@ -54,7 +55,6 @@ export default {
       geojson: null,
       geojsonIsl: null,
       disp: Object,
-      colorMap: new Map()
     };
   },
   async created() {
@@ -77,7 +77,8 @@ export default {
       this.bounds = bounds;
     },
     randomColor(ind) {
-      return this.colorMap.get(parseInt(ind));
+      console.log("random color",this.colorMap.get(ind));
+      return this.colorMap.get(ind);
     },
   },
   watch: {
@@ -85,18 +86,12 @@ export default {
       if(typeof pathCoordsToSend !== "undefined"){
         this.disp = Object.fromEntries(pathCoordsToSend);
         console.log("2DCP", this.disp);
-        let ind_len = 3107;
-        let color_map = new Map();
-        for(let j = 0; j < ind_len; j++){
-          const randomColor = Math.floor(Math.random()*16777215).toString(16);
-          let color= "#" + randomColor;
-          color_map.set(j,color);
-        }
-        this.colorMap = color_map;
-        console.log(this.colorMap);
       }else {
         this.disp = {}
       }
+    },
+    colorMap(colorMap){
+      console.log("Color map in map", colorMap);
     }
   },
   computed: {
@@ -109,7 +104,7 @@ export default {
           pane: 'mapPane',
         };
       };
-    }
+    },
   }
 }
 </script>
