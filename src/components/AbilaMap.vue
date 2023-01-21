@@ -24,20 +24,32 @@
           v-for="(item,ind) in this.disp"
           :key="ind"
           :color="randomColor(ind)"
-          :lat-lngs=item>
+          :lat-lngs=item[1]>
+
+        <l-tooltip><div class="tt path">
+          <span class="employer">Employer</span>: {{item[0]["Employer"]}} <br>
+          <span class="car_id">CarId</span>: {{item[0]["CarID"]}}<br>
+          <span class="path_id">PathID </span>: {{item[0]["PathId"]}} <br>
+          <span class="start_time">Starting Time </span>: {{item[0]["hour_start"]}}:{{item[0]["min_start"]}} <br>
+          <span class="end_time">Ending Time </span>: {{item[0]["hour_last"]}}:{{item[0]["min_last"]}} <br>
+          <span class="duration">Duration </span>: {{item[0]["duration"]}} minutes<br>
+        </div>
+        </l-tooltip>
+
       </l-polyline>
     </l-map>
   </div>
 </template>
 
 <script>
-import {LMap, LTileLayer,LGeoJson,LPolyline} from 'vue2-leaflet';
+import {LMap, LTileLayer,LGeoJson,LPolyline,LTooltip} from 'vue2-leaflet';
 export default {
   components: {
     LMap,
     LTileLayer,
     LGeoJson,
-    LPolyline
+    LPolyline,
+    LTooltip
   },
   props:{
     pathCoordsToSend: Map,
@@ -77,7 +89,6 @@ export default {
       this.bounds = bounds;
     },
     randomColor(ind) {
-      console.log("random color",this.colorMap.get(ind));
       return this.colorMap.get(ind);
     },
   },

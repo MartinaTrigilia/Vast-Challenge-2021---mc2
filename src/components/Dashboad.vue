@@ -194,8 +194,17 @@ export default {
       const randomColor = Math.floor(Math.random()*16777215).toString(16);
       let color= "#" + randomColor;
       colorMap.set(ind,color);
-      console.log("color map in assign", colorMap.get(ind));
       return colorMap.get(ind);
+    }
+
+    function getDuration(h_start, min_start, h_last, min_last) {
+      return Math.abs(h_last-h_start)*60 + Math.abs(min_last - min_start);
+    }
+    function formatTime(element) {
+      if(element < 10)
+        return "0"+(element).toString()
+    else
+      return element.toString();
     }
     /* Import Gps and Car Cards Data */
     d3.csv('/csv/df_gps_car.csv')
@@ -254,15 +263,22 @@ export default {
                   coord_list.push([coord.lat,coord.long]);
                     }
                 )
-            path_coord.set(path,coord_list);
-              }
+            let prop = {"CarID": (el[0].CarID).toString(), "Employer": el[0].fullname,"PathId":(el[0].path_id).toString(),
+              "hour_start":formatTime(el[0].hour),
+              "min_start": formatTime(el[0].minutes),
+              "hour_last": formatTime(el[el.length-1].hour),
+              "min_last":formatTime(el[el.length-1].minutes),
+              "duration":getDuration(el[0].hour,el[0].minutes,el[el.length-1].hour,el[el.length-1].minutes),
+            }
+              path_coord.set(path,[prop,coord_list]);
+          }
           )
           this.pathCoords = path_coord;
           //this.pathCoordsToSend = path_coord;
           [...this.pathCoords.keys()].forEach(key => {
             assignColorToPath(this.colorMap, key);
           })
-          console.log("GPS DATA  IN DASH", this.pathCoordsToSend);
+          console.log("Lettura gps", this.pathCoords);
 
           /*gps by day and emp*/
           const gpsByDay = d3.group(gps_car, v => v.date, v=>v.fullname)
