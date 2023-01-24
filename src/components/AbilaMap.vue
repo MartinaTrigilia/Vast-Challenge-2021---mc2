@@ -1,13 +1,12 @@
 <template>
 
-  <div style="height: 350px;">
+  <div style="height: 350px;margin-bottom: 200px">
     <div class="info" style="height: 15%">
-      <span>Center: {{ center }}</span>
-      <span>Zoom: {{ zoom }}</span>
-      <span>Bounds: {{ bounds }}</span>
+      <span>This map shows the various employee paths and has to be filtered by day and/or by one or more employees.
+        <br> Apply the chosen filters and then hover over a specific path to see the information associated with that path. </span>
     </div>
     <l-map
-        style="height: 350px"
+        style="height: 450px; z-index: 1"
         :zoom="zoom"
         :maxZoom="maxZoom"
         :minZoom="minZoom"

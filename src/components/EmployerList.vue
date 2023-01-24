@@ -3,7 +3,7 @@
       <b-card title="" header-tag="header" footer-tag="footer">
 
         <template #header>
-          <h6 class="mb-0">Employers list per employment type</h6>
+          <h6 style="text-align: center;" class="mb-0">Select to filter the GPS Map</h6>
         </template>
         <template>
           <div>

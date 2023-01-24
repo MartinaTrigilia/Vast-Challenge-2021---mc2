@@ -2,7 +2,7 @@
   <div>
     <b-form-datepicker id="datepicker-buttons" reset-button label-reset-button="Clear Date"
         placeholder="Choose a date" v-model="value" :no-key-nav=hideHeader
-                       :date-info-fn="dateClass"  :min="min" :max="max" :initial-date="min"
+                       :min="min" :max="max" :initial-date="min"
                 :hide-header=hideHeader @input="setDay(value)" locale="en">
 
     </b-form-datepicker>
@@ -40,5 +40,11 @@ export default {
 </script>
 
 <style scoped>
-
+.datepicker-buttons{
+  position: fixed;
+  position: absolute;
+  z-index: 100;
+  width: 100%;
+  height: 100vh;
+}
 </style>

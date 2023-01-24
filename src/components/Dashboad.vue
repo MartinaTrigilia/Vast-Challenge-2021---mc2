@@ -5,38 +5,48 @@
       <!-- NavBar with Calendar to select the day-->
        <b-row align-v="stretch" class="b-row pl-4 pr-4">
         <b-col class="b-col p-0" md="6" >
-          <b-navbar id="navbar">
-            <b-col><Calendar @get-day="filterDay"/></b-col>
-          </b-navbar>
+          <NavBar @get-day="filterDay"/>
         </b-col>
       </b-row>
 
       <!-- Select an Aggregation Level-->
-      <b-row id="charts_row2" justify="left" >
-        <b-col class="b-col" md="4">
-          <b-form-select v-model="aggrTrans" size="sm" class="mb-3"  @change="onClickTrans">
-            <option :value=true>Total Trans</option>
-            <option :value=false>Total Price</option>
+      <b-row id="aggr_level" justify="center" >
+        <b-col/>
+        <b-col class="b-col" md="4" style="margin-top: 7%" >
+          <b-form-select id="tooltip-target-1" v-model="aggrTrans" size="sm" class="mb-3"  @change="onClickTrans">
+            <option :value=true>Transitions</option>
+            <option :value=false>Price</option>
           </b-form-select>
+          <b-tooltip target="tooltip-target-1" triggers="hover">
+            Select an aggregation measure!
+          </b-tooltip>
         </b-col>
+        <b-col/>
       </b-row>
 
       <!-- Stack BarChart and HeatMap-->
 
       <b-row id="BarHeat" align-v="stretch" class="b-row mt-5">
+      <b-col class="b-col" md="6"  style="margin-top: -5%">
+        <StackBarchart style="z-index: 99" class="stackbar" :aggregationType="aggrBarChartMap"></StackBarchart>
+      </b-col>
 
-        <b-col class="b-col" md="6">
-          <b-card-text><StackBarchart :aggregationType="aggrBarChartMap"></StackBarchart></b-card-text>
-        </b-col>
-
-        <b-col class="b-col" md="6">
-          <Heatmap :matrix_loc="aggrHeatMap"></Heatmap>
-        </b-col>
+      <b-col id= "byday" class="b-col" md="6" style="margin-top: -40%; margin-left: 54%">
+        <b-tabs v-if="isAllday" align="center" style="z-index: 1" content-class="mt-3">
+          <b-tab  title="By Day" active>
+            <Heatmap :matrix_loc="this.aggrHeatMap" ></Heatmap>
+          </b-tab>
+          <b-tab id = "byhour" title="By Hours">
+            <Heatmap :matrix_loc="this.aggrHeatMapHour" ></Heatmap>
+          </b-tab>
+        </b-tabs>
+        <Heatmap v-else :matrix_loc="this.aggrHeatMapHour" style="margin-top: 10%;" ></Heatmap>
+      </b-col>
       </b-row>
 
       <!-- Employers List -->
 
-      <b-row id="Employers List" align-v="stretch" class="b-row mt-5">
+      <b-row id="EmployersList" align-v="stretch" class="b-row mt-5">
         <b-col class="b-col" md="6">
           <EmployerList
               @get-employers="filterEmployers"
@@ -47,7 +57,7 @@
       </b-row>
 
       <!-- Abila Map -->
-      <b-row id="Abila Map" align-v="stretch" class="b-row mt-5">
+      <b-row id="AbilaMap" align-v="stretch" class="b-row mt-5">
         <b-col class="b-col">
           <AbilaMap :pathCoordsToSend="this.pathCoordsToSend" :colorMap="this.colorMap"/>
         </b-col>
@@ -60,11 +70,11 @@
 <script>
 
 import StackBarchart from '@/components/StackBarchart.vue';
-import Calendar from "@/components/Calendar";
 import Heatmap from "@/components/Heatmap";
 import EmployerList from "@/components/EmployerList";
 import AbilaMap from "@/components/AbilaMap";
 import {crossfilter} from "crossfilter/crossfilter";
+import NavBar from "@/components/NavBar";
 
 function findIntervalRange(hour){
   switch (hour){
@@ -98,15 +108,17 @@ function findIntervalRange(hour){
 
 const d3 = require('d3')
 console.log("D3 Module:", d3);
+let avg_mvg_a = new Map();
+let avg_mvg_t = new Map();
 
 export default {
   name: 'mc2_board',
   components: {
+    NavBar,
     StackBarchart,
-    Calendar,
     Heatmap,
     EmployerList,
-    AbilaMap
+    AbilaMap,
   },
   data() {
     return {
@@ -120,14 +132,21 @@ export default {
         loc_trans: new Map(),
         aggrBarChartMap: new Map(),
         hour_amount: new Map(),
+        hour_trans: new Map(),
+        day_amount: new Map(),
+        day_trans: new Map(),
+        ht_amount: new Map(),
+        ht_trans: new Map(),
         aggrHeatMap:new Map(),
+        aggrHeatMapHour:new Map(),
         aggrTrans:true,
         EmpType: Array,
         employers: new Map(),
         employers_sel: [],
         selected_all: false,
         colorMap: new Map(),
-  }},
+
+    }},
   mounted() {
 
     /** Lettura e Parsing dei due data set */
@@ -164,19 +183,38 @@ export default {
                   };
                 });
             // Let's calculate some aggregation for the stack bar chart
-            console.log("cc_loyalty_cards filterd: ", cc_loyalty_cards);
+            console.log("cc_loyalty_cards filterd", cc_loyalty_cards);
             this.dataPayments = cc_loyalty_cards;
             // count transaction per location and method
             this.loc_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location,d => d.method)
             const l_t_All = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location)
+            avg_mvg_t = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location, d=>d.date)
+            avg_mvg_t.forEach((day_v_map,loc) => {
+              let sum = 0;
+              day_v_map.forEach((v) => {
+                sum = sum + v;
+              })
+              avg_mvg_t.set(loc,Math.round(sum/day_v_map.size));
+            })
+            console.log("ALL", avg_mvg_t)
             this.loc_trans.forEach((value, key) => {
               value.set("All",l_t_All.get(key));
+              value.set("Avg",avg_mvg_t.get(key));
             } )
             // total amount per location and method
             this.loc_amount = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price), d => d.location,d => d.method)
             const l_a_All = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price), d => d.location)
+            avg_mvg_a = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price), d => d.location, d=>d.date);
+            avg_mvg_a.forEach((day_v_map,loc) => {
+              let sum = 0;
+              day_v_map.forEach((v) => {
+                sum = sum + v;
+              })
+              avg_mvg_a.set(loc,Math.round(sum/day_v_map.size));
+            })
             this.loc_amount.forEach((value, key) => {
               value.set("All",l_a_All.get(key));
+              value.set("Avg",avg_mvg_a.get(key));
             } )
 
             this.aggrBarChartMap = this.loc_trans;
@@ -185,9 +223,12 @@ export default {
             // total amount per range hour and location
             this.hour_amount = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price),d => d.rangeHour, d => d.location)
             this.hour_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.rangeHour,d => d.location)
-            this.aggrHeatMap  = this.hour_trans;
-            console.log("Location Hour: ", this.hour_amount);
+            this.day_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.date,d => d.location)
+            this.day_amount = d3.rollup(cc_loyalty_cards,  v => d3.sum(v, d => d.price), d => d.date,d => d.location)
 
+            this.aggrHeatMap  = this.day_trans;
+            this.aggrHeatMapHour = this.hour_trans;
+            console.log("Location Hour: ", this.hour_trans);
           });
 
     function assignColorToPath(colorMap,ind){
@@ -315,6 +356,9 @@ export default {
         });
     },
   computed:{
+    isAllday(){
+      return this.selectedDay == ' ' || this.selectedDay==0 ? true : false;
+    }
   },
   methods:{
 
@@ -322,11 +366,13 @@ export default {
     * and changes Stack BarChart and HeatMap*/
     onClickTrans(){
       if(this.aggrTrans){
-        this.aggrHeatMap = this.hour_trans;
+        this.aggrHeatMap = this.day_trans;
+        this.aggrHeatMapHour = this.hour_trans;
         this.aggrBarChartMap = this.loc_trans;
       }
       else {
-        this.aggrHeatMap = this.hour_amount;
+        this.aggrHeatMap = this.day_amount;
+        this.aggrHeatMapHour = this.hour_amount;
         this.aggrBarChartMap = this.loc_amount;
       }
     },
@@ -345,11 +391,13 @@ export default {
       const l_t_All = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location)
       this.loc_trans.forEach((value, key) => {
         value.set("All",l_t_All.get(key));
+        value.set("Avg",avg_mvg_t.get(key));
       } )
       this.loc_amount = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price), d => d.location,d => d.method)
       const l_a_All = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price), d => d.location)
       this.loc_amount.forEach((value, key) => {
         value.set("All",l_a_All.get(key));
+        value.set("Avg",avg_mvg_a.get(key));
       } )
       console.log("Changed day in the main dash", this.selectedDay);
 
@@ -357,11 +405,11 @@ export default {
       this.hour_amount = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price),d => d.rangeHour, d => d.location)
       this.hour_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.rangeHour,d => d.location)
       if(this.aggrTrans){
-        this.aggrHeatMap = this.hour_trans;
+        this.aggrHeatMapHour = this.hour_trans;
         this.aggrBarChartMap = this.loc_trans;
       }
       else{
-        this.aggrHeatMap = this.hour_amount;
+        this.aggrHeatMapHour = this.hour_amount;
         this.aggrBarChartMap = this.loc_amount;
       }
 
@@ -398,7 +446,7 @@ export default {
         //this.pathCoordsToSend
         this.filterEmployers(this.employers_sel);
       }
-      },
+    },
     /* Given a List of selected Employers filter the Map */
     filterEmployers(employers_list){
       console.log("DIPENDENTI NELLA DASH",employers_list);
@@ -458,6 +506,9 @@ export default {
 <style>
 #board{
   margin-top:30px;
+  margin-left: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
 }
 
 .b-col{
@@ -470,60 +521,12 @@ b-navbar{
   margin-top:5px;
   margin-bottom:20px;
 }
-#map-container {
-  height: fit-content;
-  width: 100%;
-  max-width: 100%;
-  position: relative;
+#EmployersList
+{
+  margin-left: 50px;
 }
-
-#abila_map {
-  max-width: 100%;
-  max-height: 100%;
+#AbilaMap
+{
+  margin-left: 50px;
 }
-
-#img_map {
-  opacity: 0.9;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: -1;
-  height: 100%;
-  width:100%;
-  padding-left:10px;
-  padding-right:10px;
-}
-
-#cars_data{
-  overflow:scroll;
-  overflow-x:hidden;
-  height:auto;
-  max-height:500px;
-}
-
-svg g.trajectories path {
-  stroke: blue
-}
-
-svg g.trajectories path.selected {
-  stroke: red
-}
-
-#location_list{
-  overflow:scroll;
-  overflow-x:hidden;
-  height:315px;
-}
-
-#cards_details {
-  overflow:scroll;
-  overflow-x:hidden;
-  height:315px;
-}
-
-.generic_details{
-  background-color: #f2f2f2;
-  border-radius: 5px;
-}
-
 </style>

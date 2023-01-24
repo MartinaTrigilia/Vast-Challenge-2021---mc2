@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="Stack">
       <vue-plotly  class="" :data="data" :layout="layout" :options="options"/>
     </div>
 </template>
@@ -52,15 +52,7 @@ export default {
         "Daily Dealz"]
 
       return {
-
-            data: [
-              {
-                label: 'Moving Avg',
-                avg:[30,40,20,25,45,30,30,30,40,50,60,70,70,10,10,10,23,24,35,56,35,22,22,45,67,35,24,25,26,25,53,24],
-                borderColor: 'rgb(75, 192, 192)',
-                tension:0.5,
-                type: 'line'
-            }, {
+            data: [{
                 x: unique_loc,
                 y:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                 type: 'bar',
@@ -80,11 +72,23 @@ export default {
                 type: 'bar',
                 name: "Credit",
                 marker: {color: '#CCF'}
+              },
+              {
+                x: unique_loc,
+                y:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                type: 'line',
+                name: "Moving Avg",
+                marker: {color: '#ffccd0'}
               }
             ],
             layout: {
-                height:350,
+                height:450,
                 showlegend: true,
+                legend: {
+                  x: 0.9,
+                  xanchor: 'right',
+                  y: 1
+                },
                 barmode: "stack",
                 title: {
                     text: "",
@@ -126,14 +130,15 @@ export default {
     },
 
     watch: {
-      // whenever data changes, this function will run
+
       aggregationType(loc_map) {
         console.log("Loc Map in the Bar Chart Component", loc_map);
         const mapSort1 = new Map([...loc_map.entries()].sort((a, b) => b[1].get('All') - a[1].get('All')));
         let y_both = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         let y_card = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         let y_loy = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        let x_axis = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let y_avg = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let x_axis = [];
         let i = 0;
         mapSort1.forEach((value,key) => {
           x_axis[i] = key;
@@ -144,30 +149,36 @@ export default {
                 y_card[i]=v;
               if(k=="Loyalty")
                 y_loy[i]=v;
+              if(k=="Avg")
+                y_avg[i]=v;
           } )
           i++;
         } )
 
-        console.log("Y BOTH Map in the Bar Chart Component", y_both);
-        console.log("Y CARD Map in the Bar Chart Component", y_card);
-        console.log("Y LOY Map in the Bar Chart Component", y_loy);
-        //da cambiare c'è qualcosa che nn va nel sorting
-
-
         this.data[0].y = y_both;
         this.data[1].y = y_loy;
         this.data[2].y = y_card;
+        this.data[3].y = y_avg;
 
         this.data[0].x = x_axis;
         this.data[1].x = x_axis;
         this.data[2].x = x_axis;
+        this.data[3].x = x_axis;
 
-        console.log("Avg line", this.data[3].data);
-
-        this.layout.title.text = "Popularity of All location";
-        },
+        console.log("Y BOTH Map in the Bar Chart Component",  this.data[0].x);
+        console.log("Y BOTH Map in the Bar Chart Component",  this.data[1].x);
+        console.log("Y BOTH Map in the Bar Chart Component",  this.data[2].x);
+        console.log("Y BOTH Map in the Bar Chart Component",  this.data[3].x);
+      },
         deep: true
     },
 }
 </script>
+
+<style scoped>
+.Stack{
+  width: 700px;
+  padding-rigth: 50px;
+}
+</style>
 
