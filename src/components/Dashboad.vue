@@ -24,13 +24,17 @@
         <b-col/>
       </b-row>
 
-      <!-- Stack BarChart and HeatMap-->
+      <!-- Stack BarChart-->
 
       <b-row id="BarHeat" align-v="stretch" class="b-row mt-5">
       <b-col class="b-col" md="6"  style="margin-top: -5%">
-        <StackBarchart style="z-index: 99" class="stackbar" :aggregationType="aggrBarChartMap"></StackBarchart>
+        <StackBarchart style="z-index: 99" class="stackbar" @get-stackbar="toggleSideBar" :aggregationType="aggrBarChartMap"></StackBarchart>
       </b-col>
 
+        <!-- SideBar -->
+      <SideBarCard id="sidebar-1" title="Sidebar" shadow :transactions="transactions"></SideBarCard>
+
+        <!-- HeatMap -->
       <b-col id= "byday" class="b-col" md="6" style="margin-top: -40%; margin-left: 54%">
         <b-tabs v-if="isAllday" align="center" style="z-index: 1" content-class="mt-3">
           <b-tab  title="By Day" active>
@@ -75,6 +79,9 @@ import EmployerList from "@/components/EmployerList";
 import AbilaMap from "@/components/AbilaMap";
 import {crossfilter} from "crossfilter/crossfilter";
 import NavBar from "@/components/NavBar";
+//import SideBar from "@/components/SideBar";
+import SideBarCard from "@/components/SideBarCard";
+
 
 function findIntervalRange(hour){
   switch (hour){
@@ -119,6 +126,7 @@ export default {
     Heatmap,
     EmployerList,
     AbilaMap,
+    SideBarCard
   },
   data() {
     return {
@@ -145,7 +153,8 @@ export default {
         employers_sel: [],
         selected_all: false,
         colorMap: new Map(),
-
+        group_trans: new Map(),
+        transactions: [],
     }},
   mounted() {
 
@@ -187,6 +196,7 @@ export default {
             this.dataPayments = cc_loyalty_cards;
             // count transaction per location and method
             this.loc_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location,d => d.method)
+            this.group_trans = d3.group(cc_loyalty_cards, d => d.location,d => d.method);
             const l_t_All = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location)
             avg_mvg_t = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location, d=>d.date)
             avg_mvg_t.forEach((day_v_map,loc) => {
@@ -218,7 +228,7 @@ export default {
             } )
 
             this.aggrBarChartMap = this.loc_trans;
-            console.log("Location Amount: ", this.loc_amount);
+            console.log("Location Amount: ", this.group_trans);
 
             // total amount per range hour and location
             this.hour_amount = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price),d => d.rangeHour, d => d.location)
@@ -387,6 +397,7 @@ export default {
       if (day) {
         cc_loyalty_cards =  cc_loyalty_cards.filter(d => d.date == day)
       }
+      this.group_trans = d3.group(cc_loyalty_cards, d => d.location,d => d.method);
       this.loc_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location,d => d.method)
       const l_t_All = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location)
       this.loc_trans.forEach((value, key) => {
@@ -447,6 +458,27 @@ export default {
         this.filterEmployers(this.employers_sel);
       }
     },
+    toggleSideBar(stack){
+      console.log("stack in dash", this.group_trans, stack);
+      let transaction = new Map(this.group_trans);
+      transaction = transaction.get(stack['label']);
+      console.log("transaction in toggle", transaction);
+      transaction.forEach((array_details,method) => {
+        if(!(stack['cc'].includes(method))){
+          transaction.delete(method)
+        }
+      })
+      let values = [...transaction.values()]
+      if(values.length == 2)
+        values =  values[0].concat(values[1]);
+      if(values.length == 3){
+        values =  values[0].concat(values[1]);
+        values =  values[0].concat(values[1]);
+      }
+      this.transactions = values;
+      console.log("transaction in toggle", typeof(this.transactions), transaction);
+      this.$root.$emit('bv::toggle::collapse', 'sidebar-1')
+    },
     /* Given a List of selected Employers filter the Map */
     filterEmployers(employers_list){
       console.log("DIPENDENTI NELLA DASH",employers_list);
@@ -477,7 +509,7 @@ export default {
       else {
         this.selected_all = false;
         let all_path = [];
-        console.log("DIPENDENTI NELLA DASH 2",employers_list);
+        console.log("DIPENDENTI NELLA DASH 2", employers_list);
         employers_list.forEach((k) => {
           console.log("k",k.Fullname);
           if(this.empCoords.get(k.Fullname).has(this.selectedDay)){
@@ -499,7 +531,7 @@ export default {
         this.pathCoordsToSend = path_coords;
       }
     },
-  }
+  },
 }
 </script>
 

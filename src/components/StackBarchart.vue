@@ -1,6 +1,7 @@
 <template>
     <div class="Stack">
-      <vue-plotly  class="" :data="data" :layout="layout" :options="options"/>
+      <vue-plotly  class="" :data="data" :layout="layout" :options="options" @click="temp"/>
+
     </div>
 </template>
 <script>
@@ -52,6 +53,7 @@ export default {
         "Daily Dealz"]
 
       return {
+            el:'#app',
             data: [{
                 x: unique_loc,
                 y:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -84,6 +86,9 @@ export default {
             layout: {
                 height:450,
                 showlegend: true,
+              margin: {
+                t: -1,
+              },
                 legend: {
                   x: 0.9,
                   xanchor: 'right',
@@ -128,9 +133,21 @@ export default {
             },
         }
     },
+  methods: {
+    temp (value) {
+      let stack = {"cc": [], "label" : ' '};
+      value.points.forEach((s) =>  {
+        stack["cc"].push(s.fullData.name);
+        stack["label"] = s.label;
+      })
+      stack["cc"] = stack["cc"].filter(function(item) {
+        return item !== 'Moving Avg'
+      })
+      this.$emit('get-stackbar', stack);
 
+    }
+  },
     watch: {
-
       aggregationType(loc_map) {
         console.log("Loc Map in the Bar Chart Component", loc_map);
         const mapSort1 = new Map([...loc_map.entries()].sort((a, b) => b[1].get('All') - a[1].get('All')));
@@ -173,6 +190,8 @@ export default {
         deep: true
     },
 }
+
+
 </script>
 
 <style scoped>
