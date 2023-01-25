@@ -143,6 +143,10 @@ export default {
       stack["cc"] = stack["cc"].filter(function(item) {
         return item !== 'Moving Avg'
       })
+      const creditIndex = stack["cc"].indexOf("Credit");
+      if (creditIndex !== -1) {
+        stack["cc"][creditIndex] = 'Card';
+      }
       this.$emit('get-stackbar', stack);
 
     }

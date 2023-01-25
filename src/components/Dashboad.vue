@@ -32,7 +32,7 @@
       </b-col>
 
         <!-- SideBar -->
-      <SideBarCard id="sidebar-1" title="Sidebar" shadow :transactions="transactions"></SideBarCard>
+      <SideBarCard id="sidebar-1" title="Sidebar" shadow v-bind::transactions="transactions" :row="row"></SideBarCard>
 
         <!-- HeatMap -->
       <b-col id= "byday" class="b-col" md="6" style="margin-top: -40%; margin-left: 54%">
@@ -155,6 +155,7 @@ export default {
         colorMap: new Map(),
         group_trans: new Map(),
         transactions: [],
+        row: 100
     }},
   mounted() {
 
@@ -459,16 +460,22 @@ export default {
       }
     },
     toggleSideBar(stack){
-      console.log("stack in dash", this.group_trans, stack);
+      console.log("stack in dash", stack['label']);
       let transaction = new Map(this.group_trans);
-      transaction = transaction.get(stack['label']);
-      console.log("transaction in toggle", transaction);
-      transaction.forEach((array_details,method) => {
-        if(!(stack['cc'].includes(method))){
-          transaction.delete(method)
+      let trans_array = transaction.get(stack['label']);
+      let transaction_to_send = new Map();
+      console.log("transaction in toggle", trans_array);
+      trans_array.forEach((array_details,method) => {
+        if((stack['cc'].includes(method))){
+          console.log("cc, method", stack['cc'],method);
+          transaction_to_send.set(method,array_details);
+        }
+        else {
+          console.log("method",method);
         }
       })
-      let values = [...transaction.values()]
+      console.log("transa to send",transaction_to_send);
+      /*let values = [...transaction.values()]
       if(values.length == 2)
         values =  values[0].concat(values[1]);
       if(values.length == 3){
@@ -476,8 +483,9 @@ export default {
         values =  values[0].concat(values[1]);
       }
       this.transactions = values;
-      console.log("transaction in toggle", typeof(this.transactions), transaction);
-      this.$root.$emit('bv::toggle::collapse', 'sidebar-1')
+      this.row = values.length;
+      console.log("transaction in toggle", this.transactions, transaction);
+      this.$root.$emit('bv::toggle::collapse', 'sidebar-1')*/
     },
     /* Given a List of selected Employers filter the Map */
     filterEmployers(employers_list){
