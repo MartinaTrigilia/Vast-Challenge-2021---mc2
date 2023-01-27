@@ -13,7 +13,6 @@ import { faUserSecret,faEnvelope } from '@fortawesome/free-solid-svg-icons'
 
 import 'leaflet/dist/leaflet.css';
 
-
 /* add icons to the library */
 library.add(faUserSecret,faEnvelope)
 

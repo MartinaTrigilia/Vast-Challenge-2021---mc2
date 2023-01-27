@@ -26,7 +26,9 @@
           :lat-lngs=item[1]>
 
         <l-tooltip><div class="tt path">
+          <span class="car_id">Date</span>: {{item[0]["Day"]}}<br>
           <span class="employer">Employer</span>: {{item[0]["Employer"]}} <br>
+          <span class="employer_typ">Employer Type</span>: {{item[0]["Type"]}} <br>
           <span class="car_id">CarId</span>: {{item[0]["CarID"]}}<br>
           <span class="path_id">PathID </span>: {{item[0]["PathId"]}} <br>
           <span class="start_time">Starting Time </span>: {{item[0]["hour_start"]}}:{{item[0]["min_start"]}} <br>
@@ -36,19 +38,33 @@
         </l-tooltip>
 
       </l-polyline>
+
+      <l-marker
+          v-for="(item,ind) in this.loc_coordinates"
+          :key="ind"
+          :lat-lng="item.coord">
+        <l-tooltip>{{item.name}}</l-tooltip>
+        <l-icon
+            icon-url="json/marker-icon.png" >
+        </l-icon>
+      </l-marker>
+
+
     </l-map>
   </div>
 </template>
 
 <script>
-import {LMap, LTileLayer,LGeoJson,LPolyline,LTooltip} from 'vue2-leaflet';
+import {LMap, LTileLayer,LGeoJson,LPolyline,LTooltip,LMarker,LIcon} from 'vue2-leaflet';
 export default {
   components: {
     LMap,
     LTileLayer,
     LGeoJson,
     LPolyline,
-    LTooltip
+    LTooltip,
+    LMarker,
+    LIcon
   },
   props:{
     pathCoordsToSend: Map,
@@ -60,12 +76,54 @@ export default {
       attribution:
           '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
       zoom: 13,
-      maxZoom:20,minZoom:7,
+      maxZoom:17,minZoom:7,
       center: [36.069082, 24.867382],
       bounds: null,
       geojson: null,
       geojsonIsl: null,
       disp: Object,
+      loc_coordinates:[
+        {
+          name: "Ahaggo Museum",
+          coord: [36.0759652,24.8769882]
+        },
+        {
+          name: "Bean There Done That",
+          coord: [36.0820936,24.8515639]
+        },
+        {
+          name: "Frank's Fuel",
+          coord: [36.0724428,24.8412562]
+        },
+        {
+          name: "Abila Scrapyard",
+          coord: [36.074089,24.846560]
+        },
+        {
+          name: "Kronos Mart",
+          coord: [36.065795,24.847389]
+        },
+        {
+          name: "Roberts and Sons",
+          coord: [36.063472,24.852270]
+        },
+        {
+          name: "General Grocer",
+          coord: [36.0617819,24.8581400]
+        },
+        {
+          name: "General Grocer",
+          coord: [36.0617819,24.8581400]
+        },
+        {
+          name: "Gelatogalore",
+          coord: [36.05978258,24.85804657]
+        },
+        {
+          name: "Albert's Fine Clothing",
+          coord: [36.0750225,24.8564542]
+        }
+      ]
     };
   },
   async created() {

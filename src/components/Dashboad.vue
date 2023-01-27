@@ -11,10 +11,20 @@
 
       <!-- Select an Aggregation Level-->
       <b-row id="aggr_level" justify="center" >
-        <b-col/>
+        <b-col class="b-col" md="4" style="margin-top: 7%; margin-left: 5%" >
+          <b-form-select v-model="loyalyNum" @change="onClickLoyalty"
+                          id="firstSelect" size="sm" class="mb-3">
+            <option :value="null" >   Select a Loyalty Num  </option>
+            <option v-for="(item,ind) in this.loyalty_Set"
+                    :key="ind"
+                    :value=item>
+              {{ item }}
+            </option>
+          </b-form-select>
+        </b-col>
         <b-col class="b-col" md="4" style="margin-top: 7%" >
           <b-form-select id="tooltip-target-1" v-model="aggrTrans" size="sm" class="mb-3"  @change="onClickTrans">
-            <option :value=true>Transitions</option>
+            <option :value=true>Transactions</option>
             <option :value=false>Price</option>
           </b-form-select>
           <b-tooltip target="tooltip-target-1" triggers="hover">
@@ -32,19 +42,19 @@
       </b-col>
 
         <!-- SideBar -->
-      <SideBarCard id="sidebar-1" title="Sidebar" shadow v-bind::transactions="transactions" :row="row"></SideBarCard>
+      <SideBarCard id="sidebar-1" title="Sidebar" shadow v-bind:transactions="transactions"></SideBarCard>
 
         <!-- HeatMap -->
       <b-col id= "byday" class="b-col" md="6" style="margin-top: -40%; margin-left: 54%">
         <b-tabs v-if="isAllday" align="center" style="z-index: 1" content-class="mt-3">
           <b-tab  title="By Day" active>
-            <Heatmap :matrix_loc="this.aggrHeatMap" ></Heatmap>
+            <Heatmap :matrix_loc="this.aggrHeatMap"  @get-heatmap="toggleSideBarDay" ></Heatmap>
           </b-tab>
           <b-tab id = "byhour" title="By Hours">
-            <Heatmap :matrix_loc="this.aggrHeatMapHour" ></Heatmap>
+            <Heatmap :matrix_loc="this.aggrHeatMapHour"  @get-heatmap="toggleSideBarHour"  ></Heatmap>
           </b-tab>
         </b-tabs>
-        <Heatmap v-else :matrix_loc="this.aggrHeatMapHour" style="margin-top: 10%;" ></Heatmap>
+        <Heatmap v-else :matrix_loc="this.aggrHeatMapHour"  @get-heatmap="toggleSideBarHour" style="margin-top: 10%;" ></Heatmap>
       </b-col>
       </b-row>
 
@@ -54,10 +64,19 @@
         <b-col class="b-col" md="6">
           <EmployerList
               @get-employers="filterEmployers"
-              :employers_lst="this.employers"
+              @get-refresh="refreshMap"
+              :employers_lst="this.employers_to_send"
               :selected_all="this.selected_all"
+              :refresh="this.refresh"
           ></EmployerList>
         </b-col>
+      </b-row>
+      <b-row class="b-col" style="margin-left: 1000px; margin-bottom:-95px; position: relative; z-index:2">
+        <b-button v-if="!isPathToSendEmpty" squared variant="outline-danger" @click="refreshMap">
+          Clear Map
+        </b-button>
+        <b-button v-else squared variant="outline-danger" disabled>Clear Map</b-button>
+
       </b-row>
 
       <!-- Abila Map -->
@@ -77,38 +96,54 @@ import StackBarchart from '@/components/StackBarchart.vue';
 import Heatmap from "@/components/Heatmap";
 import EmployerList from "@/components/EmployerList";
 import AbilaMap from "@/components/AbilaMap";
-import {crossfilter} from "crossfilter/crossfilter";
 import NavBar from "@/components/NavBar";
-//import SideBar from "@/components/SideBar";
 import SideBarCard from "@/components/SideBarCard";
 
+function formatTime(element) {
+  if(element < 10)
+    return "0"+(element).toString()
+  else
+    return element.toString();
+}
 
 function findIntervalRange(hour){
   switch (hour){
-    case '0','1':
+    case '0':
+    case '1':
       return '0-2';
-    case '2','3':
+    case '2':
+    case '3':
        return '2-4';
-    case '4','5':
+    case '4':
+    case '5':
       return '4-6';
-    case '6','7':
+    case '6':
+    case '7':
       return '6-8';
-    case '8','9':
-      return '8-10'
-    case '10','11':
-      return  '10-12'
-    case '12','13':
-      return  '12-14'
-    case '14','15':
-      return  '14-16'
-    case '16','17':
-      return '16-18'
-    case '18','19':
-      return  '18-20'
-    case '20','21':
-     return  '20-22'
-    default:
-      return  '22-24'
+    case '8':
+    case '9':
+      return '8-10';
+    case '10':
+    case '11':
+      return  '10-12';
+    case '12':
+    case '13':
+      return  '12-14';
+    case '14':
+    case '15':
+      return  '14-16';
+    case '16':
+    case '17':
+      return '16-18';
+    case '18':
+    case '19':
+      return  '18-20';
+    case '20':
+    case '21':
+     return '20-22';
+    case '22':
+    case '23':
+      return '22-24';
   }
 }
 /* Import Credit and Loyalty Cards Data */
@@ -130,12 +165,13 @@ export default {
   },
   data() {
     return {
+        refresh: false,
         dataPayments: Array,
         pathCoords: new Map(),
         pathCoordsToSend: new Map(),
         dayCoords: new Map(),
         empCoords: new Map(),
-        selectedDay: ' ',
+        selectedDay: '',
         loc_amount: new Map(),
         loc_trans: new Map(),
         aggrBarChartMap: new Map(),
@@ -148,14 +184,18 @@ export default {
         aggrHeatMap:new Map(),
         aggrHeatMapHour:new Map(),
         aggrTrans:true,
+        loyalyNum: null,
         EmpType: Array,
         employers: new Map(),
         employers_sel: [],
         selected_all: false,
         colorMap: new Map(),
         group_trans: new Map(),
+        group_trans_day: new Map(),
+        group_trans_hour:new Map(),
         transactions: [],
-        row: 100
+        loyalty_Set : [],
+        employers_to_send: new Map()
     }},
   mounted() {
 
@@ -179,6 +219,8 @@ export default {
                   else
                     method = 'Both'
                   let range = findIntervalRange(row.Hour);
+                  if(range === '0-2')
+                    console.log("range 0-2",range)
                   return {
                     Date: dateF,
                     location: row.location,
@@ -198,6 +240,9 @@ export default {
             // count transaction per location and method
             this.loc_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location,d => d.method)
             this.group_trans = d3.group(cc_loyalty_cards, d => d.location,d => d.method);
+            this.group_trans_day = d3.group(cc_loyalty_cards, d => d.location,d => d.date);
+            this.group_trans_hour = d3.group(cc_loyalty_cards, d => d.location,d => d.rangeHour);
+            console.log("raggruppamento per ora",this.group_trans_hour);
             const l_t_All = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location)
             avg_mvg_t = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location, d=>d.date)
             avg_mvg_t.forEach((day_v_map,loc) => {
@@ -232,6 +277,7 @@ export default {
             console.log("Location Amount: ", this.group_trans);
 
             // total amount per range hour and location
+
             this.hour_amount = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price),d => d.rangeHour, d => d.location)
             this.hour_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.rangeHour,d => d.location)
             this.day_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.date,d => d.location)
@@ -239,7 +285,16 @@ export default {
 
             this.aggrHeatMap  = this.day_trans;
             this.aggrHeatMapHour = this.hour_trans;
-            console.log("Location Hour: ", this.hour_trans);
+            console.log("Location Hour: ", this.aggrHeatMapHour);
+
+            //let ll_cc = d3.group(cc_loyalty_cards, d => d.loyaltynum,d => d.last4ccnum,);
+            //console.log("Raggruppamento per carte di credito ", cc_loyalty_cards.filter(d => d.loyaltynum == 'L2247'));
+            //cc_loyalty_cards.filter(d => d.loyaltynum == 'L2247')
+            let loyaltySet = new Set();
+            cc_loyalty_cards.forEach((el) => {
+              loyaltySet.add(el.loyaltynum)})
+            this.loyalty_Set = Array.from(loyaltySet);
+            console.log("Loyalty_Set",this.loyalty_Set);
           });
 
     function assignColorToPath(colorMap,ind){
@@ -252,12 +307,7 @@ export default {
     function getDuration(h_start, min_start, h_last, min_last) {
       return Math.abs(h_last-h_start)*60 + Math.abs(min_last - min_start);
     }
-    function formatTime(element) {
-      if(element < 10)
-        return "0"+(element).toString()
-    else
-      return element.toString();
-    }
+
     /* Import Gps and Car Cards Data */
     d3.csv('/csv/df_gps_car.csv')
         .then((rows) => {
@@ -281,11 +331,6 @@ export default {
                   rangeHour:range
                 };
               });
-          let gps_car_CC = crossfilter(gps_car);
-          let empTypeD = gps_car_CC.dimension(d => { return d.CurrentEmploymentType});
-
-          // all types of employment -- unique values
-          console.log("unique employer type", empTypeD.group().reduceCount().all().map(d => d.key));
           console.log("gps_car: ", gps_car);
           let Employers_Set = new Set();
           gps_car.forEach((el) => {
@@ -302,6 +347,7 @@ export default {
 
           console.log("emloyers",emp_listByType);
           this.employers = emp_listByType;
+          this.employers_to_send = this.employers;
 
           /*gps by path*/
 
@@ -315,7 +361,11 @@ export default {
                   coord_list.push([coord.lat,coord.long]);
                     }
                 )
-            let prop = {"CarID": (el[0].CarID).toString(), "Employer": el[0].fullname,"PathId":(el[0].path_id).toString(),
+            let prop = {"CarID": (el[0].CarID).toString(),
+              "Employer": el[0].fullname,
+              "Type": el[0].CurrentEmploymentType,
+              "Day": el[0].date,
+              "PathId":(el[0].path_id).toString(),
               "hour_start":formatTime(el[0].hour),
               "min_start": formatTime(el[0].minutes),
               "hour_last": formatTime(el[el.length-1].hour),
@@ -326,11 +376,9 @@ export default {
           }
           )
           this.pathCoords = path_coord;
-          //this.pathCoordsToSend = path_coord;
           [...this.pathCoords.keys()].forEach(key => {
             assignColorToPath(this.colorMap, key);
           })
-          console.log("Lettura gps", this.pathCoords);
 
           /*gps by day and emp*/
           const gpsByDay = d3.group(gps_car, v => v.date, v=>v.fullname)
@@ -369,6 +417,9 @@ export default {
   computed:{
     isAllday(){
       return this.selectedDay == ' ' || this.selectedDay==0 ? true : false;
+    },
+    isPathToSendEmpty(){
+      return this.pathCoordsToSend.size==0 ? true : false;
     }
   },
   methods:{
@@ -387,6 +438,61 @@ export default {
         this.aggrBarChartMap = this.loc_amount;
       }
     },
+    onClickLoyalty(){
+      console.log("loylty selected", this.loyalyNum)
+      //filter bar chart stack per day selected
+      let cc_loyalty_cards = this.dataPayments;
+      /*check if loyalty is not empty*/
+      //we have both loyalty and day filters
+      console.log("selected in loyalty",this.selectedDay.length);
+      if (this.loyalyNum && this.selectedDay.length > 0) {
+        console.log("c'è sia la loyalty che il selected day")
+        cc_loyalty_cards =  cc_loyalty_cards.filter(d => d.date == this.selectedDay);
+        cc_loyalty_cards =  cc_loyalty_cards.filter(d => d.loyaltynum == this.loyalyNum);
+      }
+      else if(this.loyalyNum){
+        console.log("c'è solo la loyalty")
+        cc_loyalty_cards =  cc_loyalty_cards.filter(d => d.loyaltynum == this.loyalyNum);
+      }
+      this.group_trans = d3.group(cc_loyalty_cards, d => d.location,d => d.method);
+      this.group_trans_day = d3.group(cc_loyalty_cards, d => d.location,d => d.date);
+      this.group_trans_hour = d3.group(cc_loyalty_cards, d => d.location,d => d.rangeHour);
+      this.loc_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location,d => d.method);
+      const l_t_All = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location);
+      this.loc_trans.forEach((value, key) => {
+        value.set("All",l_t_All.get(key));
+        value.set("Avg",avg_mvg_t.get(key));
+      } )
+      this.loc_amount = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price), d => d.location,d => d.method)
+      const l_a_All = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price), d => d.location)
+      this.loc_amount.forEach((value, key) => {
+        value.set("All",l_a_All.get(key));
+        value.set("Avg",avg_mvg_a.get(key));
+      } )
+
+      // filter heatmap per day selected
+      this.hour_amount = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price),d => d.rangeHour, d => d.location)
+      this.hour_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.rangeHour,d => d.location)
+      if(this.aggrTrans){
+        this.aggrHeatMapHour = this.hour_trans;
+        this.aggrBarChartMap = this.loc_trans;
+      }
+      else{
+        this.aggrHeatMapHour = this.hour_amount;
+        this.aggrBarChartMap = this.loc_amount;
+      }
+    },
+    refreshMap(){
+      console.log("refresh map", this.refresh);
+      console.log("refresh path", this.pathCoordsToSend);
+
+      if(this.refresh){
+        this.pathCoordsToSend.clear();
+        this.refresh = false;
+      }
+      else
+        this.refresh = true;
+    },
     filterDay(day) {
       this.selectedDay = day;
 
@@ -394,11 +500,17 @@ export default {
 
       //filter bar chart stack per day selected
       let cc_loyalty_cards = this.dataPayments;
-      /*check if day is empty*/
-      if (day) {
-        cc_loyalty_cards =  cc_loyalty_cards.filter(d => d.date == day)
+      /*check if day is not empty*/
+      if (day && this.loyalyNum )  {
+        cc_loyalty_cards =  cc_loyalty_cards.filter(d => d.date == day);
+        cc_loyalty_cards =  cc_loyalty_cards.filter(d => d.loyaltynum == this.loyalyNum);
+      }
+      else if(day){
+        cc_loyalty_cards =  cc_loyalty_cards.filter(d => d.date == day);
       }
       this.group_trans = d3.group(cc_loyalty_cards, d => d.location,d => d.method);
+      this.group_trans_day = d3.group(cc_loyalty_cards, d => d.location,d => d.date);
+      this.group_trans_hour = d3.group(cc_loyalty_cards, d => d.location,d => d.rangeHour);
       this.loc_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location,d => d.method)
       const l_t_All = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location)
       this.loc_trans.forEach((value, key) => {
@@ -411,7 +523,6 @@ export default {
         value.set("All",l_a_All.get(key));
         value.set("Avg",avg_mvg_a.get(key));
       } )
-      console.log("Changed day in the main dash", this.selectedDay);
 
       // filter heatmap per day selected
       this.hour_amount = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price),d => d.rangeHour, d => d.location)
@@ -432,17 +543,18 @@ export default {
         if (this.employers_sel.length == 0) {
           this.selected_all = true;
         } else {
-          this.selected_all = false;
-          console.log("DAY sono nel els", this.dayCoords.get(day));
+          //this.selected_all = false;
           let all_path = [];
           this.employers_sel.forEach((k) => {
             console.log("k", k.Fullname);
-            let dayC = this.dayCoords.get(day).get(k.Fullname);
-            console.log("dayC else", dayC);
-            dayC = Array.from(dayC);
-            dayC.forEach((el) => {
-              all_path.push(el);
-            })
+            if(this.dayCoords.get(day).has(k.Fullname)){
+              let dayC = this.dayCoords.get(day).get(k.Fullname);
+              console.log("dayC else", dayC);
+              dayC = Array.from(dayC);
+              dayC.forEach((el) => {
+                all_path.push(el);
+              })
+            }
           })
           let path_coords = new Map(this.pathCoords);
           for (let k of path_coords.keys()) {
@@ -454,38 +566,95 @@ export default {
         }
       } else{
         console.log("Giorno non c'è",this.pathCoordsToSend.clear());
-        //this.pathCoordsToSend = this.pathCoordsToSend.clear();
-        //this.pathCoordsToSend
         this.filterEmployers(this.employers_sel);
+      }
+      /*Filter list of employers */
+      if(day){
+        let dayCoords = this.dayCoords;
+        dayCoords =  dayCoords.get(day);
+
+        let employer_type = new Map(
+            JSON.parse(
+                JSON.stringify(Array.from(this.employers))
+            )
+        );
+        let emp_type = new Map();
+        let emp_per_day  = [...dayCoords.keys()];
+
+        employer_type.forEach((arr_emp,type) =>{
+          let list_emp = [];
+          arr_emp.forEach( v => {
+            if((emp_per_day.includes(v.Fullname))){
+              list_emp.push(v);
+            }
+          })
+          emp_type.set(type,list_emp);
+        })
+        console.log("Filter emplo list per day 2", emp_type);
+        this.employers_to_send = emp_type;
+      }
+      else {
+        this.employers_to_send = this.employers;
       }
     },
     toggleSideBar(stack){
       console.log("stack in dash", stack['label']);
-      let transaction = new Map(this.group_trans);
-      let trans_array = transaction.get(stack['label']);
+      let g_trans = new Map(this.group_trans);
+      let trans_array = g_trans.get(stack['label']);
       let transaction_to_send = new Map();
       console.log("transaction in toggle", trans_array);
       trans_array.forEach((array_details,method) => {
         if((stack['cc'].includes(method))){
-          console.log("cc, method", stack['cc'],method);
           transaction_to_send.set(method,array_details);
         }
-        else {
-          console.log("method",method);
-        }
       })
-      console.log("transa to send",transaction_to_send);
-      /*let values = [...transaction.values()]
-      if(values.length == 2)
-        values =  values[0].concat(values[1]);
-      if(values.length == 3){
-        values =  values[0].concat(values[1]);
-        values =  values[0].concat(values[1]);
-      }
+
+      let values = [...transaction_to_send.values()].flat(1);
+      values = values.map(function(e) {
+        e.hour = formatTime(parseInt(e.hour));
+        e.minutes =formatTime(parseInt(e.minutes));
+        return e;
+      });
+
+      console.log("values to send",values);
+
       this.transactions = values;
-      this.row = values.length;
-      console.log("transaction in toggle", this.transactions, transaction);
-      this.$root.$emit('bv::toggle::collapse', 'sidebar-1')*/
+      console.log("transaction in toggle", this.transactions);
+      this.$root.$emit('bv::toggle::collapse', 'sidebar-1');
+    },
+    toggleSideBarDay(ht){
+      console.log("heat in dash", ht);
+      let g_trans = new Map(this.group_trans_day);
+      let trans_array = g_trans.get(ht['x']).get(ht['y']);
+      //let transaction_to_send = new Map();
+      console.log("HeatMap Toggle", typeof(trans_array));
+      if(typeof(trans_array)!='undefined'){
+        trans_array = trans_array.map(function(e) {
+          e.hour = formatTime(parseInt(e.hour));
+          e.minutes =formatTime(parseInt(e.minutes));
+          return e;
+        });
+        this.transactions = trans_array;
+        console.log("transaction in toggle", this.transactions);
+        this.$root.$emit('bv::toggle::collapse', 'sidebar-1');
+      }
+    },
+    toggleSideBarHour(ht){
+      console.log("heat in dash", ht);
+      let g_trans = new Map(this.group_trans_hour);
+      let trans_array = g_trans.get(ht['x']).get(ht['y']);
+      //let transaction_to_send = new Map();
+      console.log("HeatMap Toggle", trans_array);
+      if(typeof(trans_array)!='undefined'){
+        trans_array = trans_array.map(function(e) {
+          e.hour = formatTime(parseInt(e.hour));
+          e.minutes =formatTime(parseInt(e.minutes));
+          return e;
+        });
+        this.transactions = trans_array;
+        console.log("transaction in toggle", this.transactions);
+        this.$root.$emit('bv::toggle::collapse', 'sidebar-1');
+      }
     },
     /* Given a List of selected Employers filter the Map */
     filterEmployers(employers_list){
@@ -494,7 +663,6 @@ export default {
       console.log("selectedDay", this.selectedDay.length);
       /* Given a list of employers filters Stack GPS and Map */
       if(this.selectedDay == ' ' || this.selectedDay==0){
-        console.log("selectedDay", typeof (this.selectedDay));
         this.selected_all = false;
         let all_path = [];
         employers_list.forEach((k) => {

@@ -1,6 +1,6 @@
 <template>
   <div class="HeatMap">
-    <vue-plotly class="" :data="data" :layout="layout" :options="options"/>
+    <vue-plotly class="" :data="data" :layout="layout" :options="options" @click="triggerClick"/>
   </div>
 </template>
 
@@ -99,6 +99,79 @@ zValues  = [
     [0, 0, 0, 0, 0,0.00, 0, 0.00, 0.00, 0.00, 0.00, 0.00,0.00, 0, 0.00, 0.00, 0.00,0.00, 0, 0.00, 0.00, 0.00, 0.00, 0.00,0.00, 0.00, 0.00,0.00, 0, 0.00, 0.00, 0.00, 0.00, 0.00],
     [0, 0, 0, 0, 0,0.00, 0, 0.00, 0.00, 0.00, 0.00, 0.00,0.00, 0, 0.00, 0.00, 0.00,0.00, 0, 0.00, 0.00, 0.00, 0.00, 0.00,0.00, 0.00, 0.00,0.00, 0, 0.00, 0.00, 0.00, 0.00, 0.00]
   ]
+
+function formatY(htElement) {
+  console.log("element", htElement);
+  switch (htElement){
+    case '06/01':
+      htElement = '2014-01-06';
+      return htElement;
+    case '07/01':
+      htElement = '2014-01-07';
+      return htElement;
+    case '08/01':
+      htElement = '2014-01-08';
+      return htElement;
+    case '09/01':
+      htElement = '2014-01-09';
+      return htElement;
+    case '10/01':
+      htElement = '2014-01-10';
+      return htElement;
+    case '11/01':
+      htElement = '2014-01-11';
+      return htElement;
+    case '12/01':
+      htElement = '2014-01-12';
+      return htElement;
+    case '13/01':
+      htElement = '2014-01-13';
+      return htElement;
+    case '14/01':
+      htElement = '2014-01-14';
+      return htElement;
+    case '15/01':
+      htElement = '2014-01-15';
+      return htElement;
+    case '16/01':
+      htElement = '2014-01-16';
+      return htElement;
+    case '17/01':
+      htElement = '2014-01-17';
+      return htElement;
+    case '18/01':
+      htElement = '2014-01-18';
+      return htElement;
+    case '19/01':
+      htElement = '2014-01-19';
+      return htElement;
+    case '0- 2':
+      return '0-2';
+    case '2- 4':
+      console.log("sono 2 4 ")
+      return '2-4';
+    case '4- 6':
+      return '4-6';
+    case '6- 8':
+      return '6-8';
+    case '8- 10':
+      return '8-10'
+    case '10- 12':
+      return  '10-12'
+    case '12- 14':
+      return  '12-14'
+    case '14- 16':
+      return  '14-16'
+    case '16- 18':
+      return  '16-18'
+    case '18- 20':
+      return '18-20'
+    case '20- 22':
+      return  '20-22'
+    case '22- 24':
+      return '22-24'
+  }
+}
 
 export default {
   name: 'Heatmap',
@@ -207,6 +280,16 @@ export default {
       immediate: true
     },
     deep: true
+  },
+  methods: {
+    triggerClick (value) {
+      console.log("value click heat", value.points[0].x,value.points[0].y);
+      let ht = {"x": value.points[0].x, "y" : value.points[0].y};
+      console.log("ht",ht)
+      ht["y"] = formatY(ht["y"]);
+      console.log("ht",ht)
+      this.$emit('get-heatmap', ht);
+    }
   },
 }
 </script>

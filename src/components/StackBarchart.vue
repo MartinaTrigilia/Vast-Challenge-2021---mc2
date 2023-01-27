@@ -1,6 +1,6 @@
 <template>
     <div class="Stack">
-      <vue-plotly  class="" :data="data" :layout="layout" :options="options" @click="temp"/>
+      <vue-plotly  class="" :data="data" :layout="layout" :options="options" @click="triggerClick"/>
 
     </div>
 </template>
@@ -134,7 +134,7 @@ export default {
         }
     },
   methods: {
-    temp (value) {
+    triggerClick (value) {
       let stack = {"cc": [], "label" : ' '};
       value.points.forEach((s) =>  {
         stack["cc"].push(s.fullData.name);
