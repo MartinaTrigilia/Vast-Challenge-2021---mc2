@@ -13,6 +13,7 @@ import { faUserSecret,faEnvelope } from '@fortawesome/free-solid-svg-icons'
 
 import 'leaflet/dist/leaflet.css';
 
+
 /* add icons to the library */
 library.add(faUserSecret,faEnvelope)
 
@@ -20,7 +21,7 @@ library.add(faUserSecret,faEnvelope)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
-
+import 'vue2-timepicker/dist/VueTimepicker.css'
 import 'bootstrap-vue/dist/bootstrap-vue-icons.min.css'
 
 Vue.config.productionTip = false
@@ -28,11 +29,6 @@ Vue.config.productionTip = false
 Vue.use(BootstrapVue)
 // Optionally install the BootstrapVue icon components plugin
 Vue.use(BootstrapVueIcons)
-
-
-
-
-
 
 new Vue({
   el: "#app",

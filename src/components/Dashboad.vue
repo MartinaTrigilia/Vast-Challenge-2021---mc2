@@ -11,17 +11,7 @@
 
       <!-- Select an Aggregation Level-->
       <b-row id="aggr_level" justify="center" >
-        <b-col class="b-col" md="4" style="margin-top: 7%; margin-left: 5%" >
-          <b-form-select v-model="loyalyNum" @change="onClickLoyalty"
-                          id="firstSelect" size="sm" class="mb-3">
-            <option :value="null" >   Select a Loyalty Num  </option>
-            <option v-for="(item,ind) in this.loyalty_Set"
-                    :key="ind"
-                    :value=item>
-              {{ item }}
-            </option>
-          </b-form-select>
-        </b-col>
+        <b-col/>
         <b-col class="b-col" md="4" style="margin-top: 7%" >
           <b-form-select id="tooltip-target-1" v-model="aggrTrans" size="sm" class="mb-3"  @change="onClickTrans">
             <option :value=true>Transactions</option>
@@ -70,7 +60,19 @@
               :refresh="this.refresh"
           ></EmployerList>
         </b-col>
+        <b-col id="timePicker" align-v="stretch" class="b-row mt-5" style="margin-bottom: -100px">
+          <b-form-select v-model="rangeSelected" @change="changeRange"
+                         id="timePickerS" size="sm" class="mb-3">
+            <option :value="null" >   Select a Range Hour  </option>
+            <option v-for="(item,ind) in this.rangeH"
+                    :key="ind"
+                    :value=item>
+              {{ item }}
+            </option>
+          </b-form-select>
+        </b-col>
       </b-row>
+
       <b-row class="b-col" style="margin-left: 1000px; margin-bottom:-95px; position: relative; z-index:2">
         <b-button v-if="!isPathToSendEmpty" squared variant="outline-danger" @click="refreshMap">
           Clear Map
@@ -84,7 +86,6 @@
         <b-col class="b-col">
           <AbilaMap :pathCoordsToSend="this.pathCoordsToSend" :colorMap="this.colorMap"/>
         </b-col>
-
       </b-row>
 
     </b-container>
@@ -194,8 +195,10 @@ export default {
         group_trans_day: new Map(),
         group_trans_hour:new Map(),
         transactions: [],
-        loyalty_Set : [],
-        employers_to_send: new Map()
+        employers_to_send: new Map(),
+        rangeH: ['0-2','2-4','4-6','6-8','8-10','10-12','12-14','14-16','16-18','18-20','20-22',
+          '22-24'],
+        rangeSelected: null
     }},
   mounted() {
 
@@ -285,16 +288,7 @@ export default {
 
             this.aggrHeatMap  = this.day_trans;
             this.aggrHeatMapHour = this.hour_trans;
-            console.log("Location Hour: ", this.aggrHeatMapHour);
 
-            //let ll_cc = d3.group(cc_loyalty_cards, d => d.loyaltynum,d => d.last4ccnum,);
-            //console.log("Raggruppamento per carte di credito ", cc_loyalty_cards.filter(d => d.loyaltynum == 'L2247'));
-            //cc_loyalty_cards.filter(d => d.loyaltynum == 'L2247')
-            let loyaltySet = new Set();
-            cc_loyalty_cards.forEach((el) => {
-              loyaltySet.add(el.loyaltynum)})
-            this.loyalty_Set = Array.from(loyaltySet);
-            console.log("Loyalty_Set",this.loyalty_Set);
           });
 
     function assignColorToPath(colorMap,ind){
@@ -423,6 +417,25 @@ export default {
     }
   },
   methods:{
+    changeRange(rangeSelected){
+      console.log("range selected", rangeSelected);
+      let range_splitted = rangeSelected.split("-");
+      console.log("range, slitted",formatTime(range_splitted[1]));
+      //if range selected is not null
+      if(rangeSelected){
+       let p = Object.values(Object.fromEntries(this.pathCoordsToSend));
+       console.log("this.pathCoordsToSend",this.pathCoordsToSend)
+       let r = p.filter(path => ((path[0].hour_last<=formatTime(range_splitted[1])-1) &&
+           (path[0].hour_start>=formatTime(range_splitted[0]))));
+        //eng_sel..length==0)
+        let all_path = new Map();
+        r.forEach( arr=> {
+          all_path.set(arr[0].PathId, arr);
+        })
+        console.log("path to send", all_path)
+        this.pathCoordsToSend = all_path;
+      }
+    },
 
     /*This method is called when a user select an option of aggregation
     * and changes Stack BarChart and HeatMap*/
@@ -543,7 +556,7 @@ export default {
         if (this.employers_sel.length == 0) {
           this.selected_all = true;
         } else {
-          //this.selected_all = false;
+          this.selected_all = false;
           let all_path = [];
           this.employers_sel.forEach((k) => {
             console.log("k", k.Fullname);

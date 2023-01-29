@@ -21,7 +21,8 @@
     "leaflet": "^1.9.3",
     "plotly.js-dist": "^2.16.3",
     "vue": "^2.6.12",
-    "vue2-leaflet": "^2.7.1"
+    "vue2-leaflet": "^2.7.1",
+    "vue2-timepicker": "^1.1.6"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

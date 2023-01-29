@@ -224,13 +224,11 @@ export default {
       this.currentPage_exec  = 1;
     },
     selected_all(selected_all){
-      console.log("select all nel dipen");
-      console.log("eng_sel", this.eng_sel);
       if(selected_all){
         console.log("selected all", selected_all);
         let types = ['Security','Executive','Information Technology','Facilities','Engineering'];
         types.forEach((t) => {
-          this.selectAll(t);
+          this.selectAll(t,true);
         })
       }
     },
