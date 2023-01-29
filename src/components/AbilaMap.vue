@@ -12,9 +12,9 @@
         @update:bounds="boundsUpdated"
     >
       <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
-      <l-geo-json :geojson="geojsonIsl" :options-style="styleFunction"></l-geo-json>
+      <l-geo-json :geojson="geojsonIsl" :options-style="styling"></l-geo-json>
 
-      <l-geo-json :geojson="geojson" :options-style="styleFunction"></l-geo-json>
+      <l-geo-json :geojson="geojson" :options-style="styling"></l-geo-json>
       <l-polyline
           v-for="(item,ind) in this.disp"
           :key="ind"
@@ -122,7 +122,43 @@ export default {
         {
           name: "Albert's Fine Clothing",
           coord: [36.0750225,24.8564542]
-        }
+        },
+        {
+          name: "Ouzeri Elian",
+          coord: [36.051800,24.869975]
+        },
+        {
+          name: "Carlyle Chemical Inc.",
+          coord: [36.058920,24.881545]
+        },
+        {
+          name: "Nationwide Refinery",
+          coord: [36.058254,24.884495]
+        },
+        {
+          name: "Coffee Cameleon",
+          coord: [36.055390,24.889705]
+        },
+        {
+          name: "Guy's Gyros",
+          coord: [36.054447,24.899789]
+        },
+        {
+          name: "Desafio Golf Course",
+          coord: [36.088840,24.860135]
+        },
+        {
+          name: "Frydos Autosupply n' More",
+          coord: [36.055720,24.902581]
+        },
+        {
+          name: "Katerina’s Café",
+          coord: [36.053950,24.901026]
+        },
+        {
+          name: "Hallowed Grounds",
+          coord: [36.063493,24.885390]
+        },
       ]
     };
   },
@@ -192,7 +228,7 @@ export default {
     }
   },
   computed: {
-    styleFunction() {
+    styling() {
       return () => {
         return {
           weight: 1,

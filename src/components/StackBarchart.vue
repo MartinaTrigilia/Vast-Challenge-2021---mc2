@@ -1,7 +1,8 @@
 <template>
     <div class="Stack">
       <vue-plotly  class="" :data="data" :layout="layout" :options="options" @click="triggerClick"/>
-
+      <p style="margin-left: 20px">Stacked Bar Chart - Change aggregation level and click on stack chart to see
+        <br>transaction detail</p>
     </div>
 </template>
 <script>
@@ -84,46 +85,22 @@ export default {
               }
             ],
             layout: {
-                height:450,
+                height:550,
                 showlegend: true,
-              margin: {
-                t: -1,
-              },
+                margin: {
+                  t: -1,
+                },
                 legend: {
                   x: 0.9,
                   xanchor: 'right',
                   y: 1
                 },
                 barmode: "stack",
-                title: {
-                    text: "",
-                    font: {
-                        family: 'Quicksand, monospace',
-                        size: 10
-                    },
-                    xref: 'paper',
-                    x: 0.05,
-                },
                 xaxis: {
-                    title: {
-                        text: '',
-                        font: {
-                            family: 'Quicksand, monospace',
-                            size: 10,
-                            color: '#7f7f7f'
-                        },
-                      ticklen: 0.5
-                    },
+                  automargin: true
                 },
                 yaxis: {
-                    title: {
-                        text: 'Count',
-                        font: {
-                            family: 'Quicksand, monospace',
-                            size: 10,
-                            color: '#7f7f7f'
-                        }
-                    },
+                  automargin: true
                 },
             },
             options: {

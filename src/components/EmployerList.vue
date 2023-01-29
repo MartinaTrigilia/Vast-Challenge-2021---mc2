@@ -3,13 +3,13 @@
       <b-card title="" header-tag="header" footer-tag="footer">
 
         <template #header>
-          <h6 style="text-align: center;" class="mb-0">Select to filter the GPS Map</h6>
+          <p style="text-align: center;" class="mb-0">Employer List</p>
         </template>
         <template>
           <div>
             <b-tabs content-class="mt-3">
               <b-tab title="Engineering" active>
-                <b-row><b-col md="4"><b>Engineering</b></b-col>
+                <b-row><b-col md="4"></b-col>
                   <b-col>
                     <b-button  v-if="eng_sel.length<eng_len" variant="info" size="sm" @click="selectAll('Engineering',true)">Select All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Select All</b-button>
@@ -41,7 +41,7 @@
                 </template>
               </b-tab>
               <b-tab title="Executive">
-                <b-row><b-col md="4"><b>Executive</b></b-col>
+                <b-row><b-col md="4"></b-col>
                   <b-col>
                     <b-button  v-if="exec_sel.length<exec_len" variant="info" size="sm" @click="selectAll('Executive',true)">Select All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Select All</b-button>
@@ -69,7 +69,7 @@
                 </b-row>
               </b-tab>
               <b-tab title="Facilities">
-                <b-row><b-col md="4"><b>Facilities</b></b-col>
+                <b-row><b-col md="4"></b-col>
                   <b-col>
                     <b-button  v-if="fac_sel.length<fac_len" variant="info" size="sm" @click="selectAll('Facilities',true)">Select All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Select All</b-button>
@@ -97,7 +97,7 @@
                 </b-row>
               </b-tab>
               <b-tab title="Information Technology">
-                <b-row><b-col md="4"><b>Information Technology</b></b-col>
+                <b-row><b-col md="4"></b-col>
                   <b-col>
                     <b-button  v-if="IT_sel.length<IT_len" variant="info" size="sm" @click="selectAll('Information Technology',true)">Select All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Select All</b-button>
@@ -125,7 +125,7 @@
                 </b-row>
               </b-tab>
               <b-tab title="Security">
-                <b-row><b-col md="3"><b>Security</b></b-col>
+                <b-row><b-col md="3"></b-col>
                   <b-col>
                     <b-button  v-if="sec_sel.length<sec_len" variant="info" size="sm" @click="selectAll('Security',true)">Select All</b-button>
                     <b-button  v-else variant="info" disabled size="sm">Select All</b-button>

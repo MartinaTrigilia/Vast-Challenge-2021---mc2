@@ -27,8 +27,8 @@
       <!-- Stack BarChart-->
 
       <b-row id="BarHeat" align-v="stretch" class="b-row mt-5">
-      <b-col class="b-col" md="6"  style="margin-top: -5%">
-        <StackBarchart style="z-index: 99" class="stackbar" @get-stackbar="toggleSideBar" :aggregationType="aggrBarChartMap"></StackBarchart>
+      <b-col class="b-col" md="6">
+        <StackBarchart style="z-index: 99; margin-top: -10%" class="stackbar" @get-stackbar="toggleSideBar" :aggregationType="aggrBarChartMap"></StackBarchart>
       </b-col>
 
         <!-- SideBar -->
@@ -63,7 +63,7 @@
                          v-model="rangeSelected"
                          @change="changeRange"
                          id="timePickerS" size="sm" class="mb-3">
-            <option :value="null" >   Select a Range Hour  </option>
+            <option :value="null" disabled>   Select a Range Hour  </option>
             <option v-for="(item,ind) in this.rangeH"
                     :key="ind"
                     :value=item>
@@ -308,7 +308,12 @@ export default {
     }
 
     function getDuration(h_start, min_start, h_last, min_last) {
-      return Math.abs(h_last-h_start)*60 + Math.abs(min_last - min_start);
+      if(h_start === h_last){
+        return Math.abs(min_last - min_start);
+      }
+      else{
+        return Math.abs((min_last + 60) - min_start);
+      }
     }
 
 

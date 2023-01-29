@@ -194,7 +194,7 @@ export default {
       },
       ],
       layout: {
-        height: 400,
+        height: 550,
         width: 650,
         title: '',
         annotations: [],
@@ -205,7 +205,8 @@ export default {
         xaxis: {
           height: 100,
           ticks: { height: 500},
-          side: 'bottom'
+          side: 'bottom',
+          automargin: true
       },
         yaxis: {
           ticks: '',
