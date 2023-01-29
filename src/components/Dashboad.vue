@@ -48,7 +48,31 @@
       </b-col>
       </b-row>
 
-      <!-- Employers List -->
+      <!-- Employers List and  Abila Map -->
+
+      <b-row class="b-col" style="margin-bottom: -50px">
+        <b-col md="6"></b-col>
+        <b-col md="2" style="padding: 0 45px;" >
+          <b-button v-if="!isPathToSendEmpty" squared variant="outline-danger" @click="refreshMap">
+            Clear Map
+          </b-button>
+          <b-button v-else squared variant="outline-danger" disabled>Clear Map</b-button>
+        </b-col>
+        <b-col id="timePicker" align-v="stretch" class="b-col" md="4">
+          <b-form-select v-if="!isPathToSendEmpty"
+                         v-model="rangeSelected"
+                         @change="changeRange"
+                         id="timePickerS" size="sm" class="mb-3">
+            <option :value="null" >   Select a Range Hour  </option>
+            <option v-for="(item,ind) in this.rangeH"
+                    :key="ind"
+                    :value=item>
+              {{ item }}
+            </option>
+          </b-form-select>
+        </b-col>
+
+      </b-row>
 
       <b-row id="EmployersList" align-v="stretch" class="b-row mt-5">
         <b-col class="b-col" md="6">
@@ -60,32 +84,16 @@
               :refresh="this.refresh"
           ></EmployerList>
         </b-col>
-        <b-col id="timePicker" align-v="stretch" class="b-row mt-5" style="margin-bottom: -100px">
-          <b-form-select v-model="rangeSelected" @change="changeRange"
-                         id="timePickerS" size="sm" class="mb-3">
-            <option :value="null" >   Select a Range Hour  </option>
-            <option v-for="(item,ind) in this.rangeH"
-                    :key="ind"
-                    :value=item>
-              {{ item }}
-            </option>
-          </b-form-select>
-        </b-col>
-      </b-row>
 
-      <b-row class="b-col" style="margin-left: 1000px; margin-bottom:-95px; position: relative; z-index:2">
-        <b-button v-if="!isPathToSendEmpty" squared variant="outline-danger" @click="refreshMap">
-          Clear Map
-        </b-button>
-        <b-button v-else squared variant="outline-danger" disabled>Clear Map</b-button>
-
-      </b-row>
-
-      <!-- Abila Map -->
-      <b-row id="AbilaMap" align-v="stretch" class="b-row mt-5">
         <b-col class="b-col">
-          <AbilaMap :pathCoordsToSend="this.pathCoordsToSend" :colorMap="this.colorMap"/>
+          <AbilaMap :pathCoordsToSend="this.pathCoordsToSend" :colorMap="this.colorMap" :rangeToAbilia="this.rangeToAbila"/>
         </b-col>
+      </b-row>
+
+
+      <b-row id="AbilaMap" align-v="stretch" class="b-row mt-5">
+
+
       </b-row>
 
     </b-container>
@@ -166,6 +174,8 @@ export default {
   },
   data() {
     return {
+        rangeH: ['0-2','2-4','4-6','6-8','8-10','10-12','12-14','14-16','16-18','18-20','20-22',
+        '22-24'],
         refresh: false,
         dataPayments: Array,
         pathCoords: new Map(),
@@ -196,9 +206,8 @@ export default {
         group_trans_hour:new Map(),
         transactions: [],
         employers_to_send: new Map(),
-        rangeH: ['0-2','2-4','4-6','6-8','8-10','10-12','12-14','14-16','16-18','18-20','20-22',
-          '22-24'],
-        rangeSelected: null
+        rangeSelected: null,
+        rangeToAbila: null
     }},
   mounted() {
 
@@ -302,6 +311,7 @@ export default {
       return Math.abs(h_last-h_start)*60 + Math.abs(min_last - min_start);
     }
 
+
     /* Import Gps and Car Cards Data */
     d3.csv('/csv/df_gps_car.csv')
         .then((rows) => {
@@ -348,6 +358,18 @@ export default {
           const gpsByPath = d3.group(gps_car, v => v.path_id)
           let path_coord = new Map();
 
+          function getHourRange(range_array, hour_start, hour_end) {
+            let rangeToReturn = '';
+            range_array.forEach((range) => {
+              let range_splitted = range.split("-");
+              if((parseInt(hour_end)<=parseInt(range_splitted[1])) && (parseInt(hour_start)>=
+                  parseInt(range_splitted[0]))) {
+                rangeToReturn = range;
+              }
+            })
+            return rangeToReturn;
+          }
+
           /* create a map that link each path with its coordinates list */
           gpsByPath.forEach((el,path) => {
             let coord_list = [];
@@ -355,6 +377,7 @@ export default {
                   coord_list.push([coord.lat,coord.long]);
                     }
                 )
+            let r = getHourRange(this.rangeH,formatTime(el[0].hour),formatTime(el[el.length-1].hour));
             let prop = {"CarID": (el[0].CarID).toString(),
               "Employer": el[0].fullname,
               "Type": el[0].CurrentEmploymentType,
@@ -365,6 +388,7 @@ export default {
               "hour_last": formatTime(el[el.length-1].hour),
               "min_last":formatTime(el[el.length-1].minutes),
               "duration":getDuration(el[0].hour,el[0].minutes,el[el.length-1].hour,el[el.length-1].minutes),
+              "range_hour": r
             }
               path_coord.set(path,[prop,coord_list]);
           }
@@ -374,6 +398,7 @@ export default {
             assignColorToPath(this.colorMap, key);
           })
 
+          console.log("path coords", this.pathCoords);
           /*gps by day and emp*/
           const gpsByDay = d3.group(gps_car, v => v.date, v=>v.fullname)
           let day_coord = new Map();
@@ -405,7 +430,27 @@ export default {
             emp_coord.set(emp,map_day_el);
           })
           this.empCoords = emp_coord;
-          console.log("emp_coord", emp_coord);
+          console.log("emp_coord", gpsByEmp);
+
+          const gpsByEmpRange = d3.group(gps_car, v=>v.fullname, v => v.date, v=>v.rangeHour);
+          let emp_coord_hour = new Map();
+          gpsByEmpRange.forEach((day_map,emp) => {
+            let map_day_el = new Map();
+            day_map.forEach((hour_map,day) => {
+              let map_hour_el = new Map();
+              hour_map.forEach((arr,rangeH) => {
+                let hour_list = new Set();
+                arr.forEach((ele) => {
+                  hour_list.add(ele.path_id);
+                })
+                map_hour_el.set(rangeH,hour_list);
+              })
+              map_day_el.set(day,map_hour_el);
+            })
+            emp_coord_hour.set(emp,map_day_el)
+          })
+          console.log("emp_coord_hour", emp_coord_hour);
+
         });
     },
   computed:{
@@ -414,29 +459,13 @@ export default {
     },
     isPathToSendEmpty(){
       return this.pathCoordsToSend.size==0 ? true : false;
-    }
+    },
   },
   methods:{
     changeRange(rangeSelected){
-      console.log("range selected", rangeSelected);
-      let range_splitted = rangeSelected.split("-");
-      console.log("range, slitted",formatTime(range_splitted[1]));
-      //if range selected is not null
-      if(rangeSelected){
-       let p = Object.values(Object.fromEntries(this.pathCoordsToSend));
-       console.log("this.pathCoordsToSend",this.pathCoordsToSend)
-       let r = p.filter(path => ((path[0].hour_last<=formatTime(range_splitted[1])-1) &&
-           (path[0].hour_start>=formatTime(range_splitted[0]))));
-        //eng_sel..length==0)
-        let all_path = new Map();
-        r.forEach( arr=> {
-          all_path.set(arr[0].PathId, arr);
-        })
-        console.log("path to send", all_path)
-        this.pathCoordsToSend = all_path;
-      }
-    },
+      this.rangeToAbila = rangeSelected;
 
+    },
     /*This method is called when a user select an option of aggregation
     * and changes Stack BarChart and HeatMap*/
     onClickTrans(){
@@ -447,50 +476,6 @@ export default {
       }
       else {
         this.aggrHeatMap = this.day_amount;
-        this.aggrHeatMapHour = this.hour_amount;
-        this.aggrBarChartMap = this.loc_amount;
-      }
-    },
-    onClickLoyalty(){
-      console.log("loylty selected", this.loyalyNum)
-      //filter bar chart stack per day selected
-      let cc_loyalty_cards = this.dataPayments;
-      /*check if loyalty is not empty*/
-      //we have both loyalty and day filters
-      console.log("selected in loyalty",this.selectedDay.length);
-      if (this.loyalyNum && this.selectedDay.length > 0) {
-        console.log("c'è sia la loyalty che il selected day")
-        cc_loyalty_cards =  cc_loyalty_cards.filter(d => d.date == this.selectedDay);
-        cc_loyalty_cards =  cc_loyalty_cards.filter(d => d.loyaltynum == this.loyalyNum);
-      }
-      else if(this.loyalyNum){
-        console.log("c'è solo la loyalty")
-        cc_loyalty_cards =  cc_loyalty_cards.filter(d => d.loyaltynum == this.loyalyNum);
-      }
-      this.group_trans = d3.group(cc_loyalty_cards, d => d.location,d => d.method);
-      this.group_trans_day = d3.group(cc_loyalty_cards, d => d.location,d => d.date);
-      this.group_trans_hour = d3.group(cc_loyalty_cards, d => d.location,d => d.rangeHour);
-      this.loc_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location,d => d.method);
-      const l_t_All = d3.rollup(cc_loyalty_cards, v => v.length, d => d.location);
-      this.loc_trans.forEach((value, key) => {
-        value.set("All",l_t_All.get(key));
-        value.set("Avg",avg_mvg_t.get(key));
-      } )
-      this.loc_amount = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price), d => d.location,d => d.method)
-      const l_a_All = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price), d => d.location)
-      this.loc_amount.forEach((value, key) => {
-        value.set("All",l_a_All.get(key));
-        value.set("Avg",avg_mvg_a.get(key));
-      } )
-
-      // filter heatmap per day selected
-      this.hour_amount = d3.rollup(cc_loyalty_cards, v => d3.sum(v, d => d.price),d => d.rangeHour, d => d.location)
-      this.hour_trans = d3.rollup(cc_loyalty_cards, v => v.length, d => d.rangeHour,d => d.location)
-      if(this.aggrTrans){
-        this.aggrHeatMapHour = this.hour_trans;
-        this.aggrBarChartMap = this.loc_trans;
-      }
-      else{
         this.aggrHeatMapHour = this.hour_amount;
         this.aggrBarChartMap = this.loc_amount;
       }
@@ -698,7 +683,7 @@ export default {
       else {
         this.selected_all = false;
         let all_path = [];
-        console.log("DIPENDENTI NELLA DASH 2", employers_list);
+        console.log("Emp to check", this.empCoords);
         employers_list.forEach((k) => {
           console.log("k",k.Fullname);
           if(this.empCoords.get(k.Fullname).has(this.selectedDay)){

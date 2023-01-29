@@ -1,10 +1,6 @@
 <template>
 
   <div style="height: 350px;margin-bottom: 200px">
-    <div class="info" style="height: 15%">
-      <span>This map shows the various employee paths and has to be filtered by day and/or by one or more employees.
-        <br> Apply the chosen filters and then hover over a specific path to see the information associated with that path. </span>
-    </div>
     <l-map
         style="height: 450px; z-index: 1"
         :zoom="zoom"
@@ -48,9 +44,11 @@
             icon-url="json/marker-icon.png" >
         </l-icon>
       </l-marker>
-
-
     </l-map>
+    <div class="info" style="height: 15%">
+      <span>This map shows the various employee paths and has to be filtered by day and/or by one or more employees.
+        Apply the chosen filters and then hover over a specific path to see the information associated with that path. </span>
+    </div>
   </div>
 </template>
 
@@ -68,7 +66,8 @@ export default {
   },
   props:{
     pathCoordsToSend: Map,
-    colorMap:Map
+    colorMap:Map,
+    rangeToAbilia: String
   },
   data () {
     return {
@@ -82,6 +81,7 @@ export default {
       geojson: null,
       geojsonIsl: null,
       disp: Object,
+      rangeH: "",
       loc_coordinates:[
         {
           name: "Ahaggo Museum",
@@ -152,14 +152,43 @@ export default {
   watch: {
     pathCoordsToSend(pathCoordsToSend){
       if(typeof pathCoordsToSend !== "undefined"){
-        this.disp = Object.fromEntries(pathCoordsToSend);
-        console.log("2DCP", this.disp);
+        if(this.rangeH!=""){
+          let p = Object.values(Object.fromEntries(this.pathCoordsToSend));
+          let r = p.filter(path => path[0].range_hour==this.rangeH);
+          console.log("rangeToAbilia in map", r);
+          let all_path = new Map();
+          r.forEach( arr=> {
+            all_path.set(arr[0].PathId, arr);
+          })
+          console.log("path to send", all_path)
+          //this.pathCoordsToSend = all_path;
+          this.disp = Object.fromEntries(all_path);
+        }
+        else{
+          this.disp = Object.fromEntries(pathCoordsToSend);
+          console.log("2DCP", pathCoordsToSend);
+        }
       }else {
         this.disp = {}
       }
     },
     colorMap(colorMap){
       console.log("Color map in map", colorMap);
+    },
+    rangeToAbilia(rangeToAbilia){
+      if(rangeToAbilia) {
+        this.rangeH = rangeToAbilia;
+        let p = Object.values(Object.fromEntries(this.pathCoordsToSend));
+        let r = p.filter(path => path[0].range_hour == rangeToAbilia);
+        console.log("rangeToAbilia in map", r);
+        let all_path = new Map();
+        r.forEach(arr => {
+          all_path.set(arr[0].PathId, arr);
+        })
+        console.log("path to send", all_path)
+        //this.pathCoordsToSend = all_path;
+        this.disp = Object.fromEntries(all_path);
+      }
     }
   },
   computed: {
